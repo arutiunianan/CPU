@@ -84,6 +84,7 @@ int IsValidCommand(Com* command)
 		{
 			UnsetCommandBitCode(&command->CPUcmdarg.cmd, IMM);
 			SetCommandTypeBitCode(&command->cmdArgType, IMM);
+            printf("%d\n",command->CPUcmdarg.arg);
 		
             //if(command->CPUcmdarg.cmd == POP)
             //{
@@ -202,6 +203,8 @@ int main( int argc, const char* argv[] )
     }
 
     ProcessingCPU( &cpu );
+    /*for(int i = 0; i < cpu.stack.size;i++ )
+        printf("%d\n",cpu.stack.data[i]);*/
     //CPUDtor( &cpu );
 
 }

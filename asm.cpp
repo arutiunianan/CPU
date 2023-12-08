@@ -142,7 +142,17 @@ int ReadLine( char* curStr, Com* command )
 	int end = SkipNonSpaces(curStr, begin);
     command->cmdCode = ( char* )calloc( end - begin, sizeof( char ) );
     strncpy(command->cmdCode, curStr + begin, end - begin);
-    
+
+    //int arg = 0;
+    //CPU cmd = {};
+    //char* cmd = ( char* )calloc( 10000, sizeof( char ) );
+
+
+    //printf("%s\n",curStr);
+    //sscanf(curStr,"%s %a",cmd,&arg);
+    //printf("%d\n",arg);
+
+
 	while ( curStr[end] != '\0' )
 	{
         
@@ -151,6 +161,7 @@ int ReadLine( char* curStr, Com* command )
 
         command->cmdArg = ( char* )calloc( end - begin, sizeof( char ) );
 		strncat( command->cmdArg, curStr + begin, end - begin );
+        //printf("%s\n",command->cmdArg);
         
 	}
 }
@@ -168,6 +179,7 @@ int StrToNum(  Com* command )
 	}
 
     int strLen = strlen( command->cmdArg );
+    //printf("%d\n",strLen);
     for ( ;charNum < strLen; charNum++ )
 	{
 		if( !isdigit( command->cmdArg[charNum] ) )
@@ -175,6 +187,7 @@ int StrToNum(  Com* command )
 			return 0;
 		}
 		num += ( command->cmdArg[charNum] - '0' ) * pow( 10, strLen - charNum - 1 );  
+        //printf(" %d\n",1 * pow( 10, strLen - charNum - 1 )  );
 	}
 	if( isNegative )
     {
@@ -201,7 +214,6 @@ int ProcessingASM( Asm* ass, const char* equation )
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;                \
             if(TrySetArgCPUCode( ass,command, args_num )) \
                 int is_command_args_valid = 1;\
-		                                           \ 
 	    }
         #include "commands.h"
 		#undef DEF_CMD
