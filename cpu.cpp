@@ -1,19 +1,5 @@
 #include "cpu.h"
 
-void UnsetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type)
-{
-	//assert(command_cpu_code != NULL);
-
-	*(char*)command_cpu_code &= ~(char)arg_type;
-}
-
-void SetCommandTypeBitCode(argType* old_arg_type, argType new_arg_type)
-{
-	//assert(old_arg_type != NULL);
-
-	*(char*)old_arg_type |= (char)new_arg_type;
-}
-
 int IsValidRegArg( Com* command )
 {
 	//assert(command != NULL);
@@ -123,22 +109,13 @@ int IsValidCommand(Com* command)
 		case cmd_name:												\
 			return (command->argNum == cmd_n_args);
 		
-		#include "commands.h"
+		#include "cmds.h"
 
 		default:
 			return 0;
 	}
 	#undef DEF_CMD
 	return 1;
-
-}
-
-int GetFileSize( FILE *text, int startOfCode )
-{
-    fseek( text, 0, SEEK_END );
-    int fileSize = ftell( text ) - startOfCode;
-    fseek( text, 0, startOfCode );
-    return fileSize;
 
 }
 
@@ -181,7 +158,7 @@ int ProcessingCPU( Cpu* cpu )
 			{
 				#define DEF_CMD(cmd_name, cmd_num, cmd_n_args, cmd_code) case cmd_name: cmd_code; break;
 				
-				#include "commands.h"
+				#include "cmds.h"
 
 				#undef DEF_CMD
 			}
@@ -220,8 +197,8 @@ int main( int argc, const char* argv[] )
     }
 
     ProcessingCPU( &cpu );
-    //for(int i = 0; i < cpu.stack.size;i++ )
-    //    printf("%lf\n",cpu.stack.data[i]);
+    for(int i = 0; i < cpu.stack.size;i++ )
+        printf("%lf\n",cpu.stack.data[i]);
     //CPUDtor( &cpu );
 
 }

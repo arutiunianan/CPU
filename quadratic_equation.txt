@@ -1,6 +1,7 @@
 IN
 IN
-IN
 POP rc
 POP rb
-POP ra
+PUSH rc
+PUSH rb
+SUB

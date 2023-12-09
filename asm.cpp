@@ -1,98 +1,5 @@
 #include "asm.h"
 
-void SetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type)
-{
-	*(char*)command_cpu_code |= (char)arg_type;
-}
-/*
-int TrySetArgCPUCode(Asm* ass, Com* command, int needed_args_num) 
-{
-    if( needed_args_num )
-    {//printf("%d %c\n",strlen( command->cmdArg ),command->cmdArg[0]);
-        if( StrToNum( command ) )
-            SetCommandBitCode( &command->CPUcmdarg.cmd, IMM ); 
-        else if( strlen( command->cmdArg ) == 2 && command->cmdArg[0] == 'r' && RegToNum( command->cmdArg[1] ) ) 
-        {                           
-            SetCommandBitCode( &command->CPUcmdarg.cmd, REG );    
-            command->CPUcmdarg.arg = RegToNum( command->cmdArg[1] );
-        }
-        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
-    }
-    else  
-    {  
-        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-    }  
-	ass->cmdNum++;
-	/*assert(assembler != NULL);
-	assert(command != NULL);
-	
-	if (command->error > 0)
-		return false;
-
-	if (command->arguments_num > needed_args_num)
-	{
-		command->error = TOO_MANY_ARGS;
-		return false;
-	}
-	else if (command->arguments_num < needed_args_num)
-	{
-		command->error = TOO_FEW_ARGS;
-		return false;
-	}
-
-	if (command->arguments_num > 0)
-		ResolveTypeOfCommandArg(assembler, command);
-
-	return true;
-}*/
-
-enum Regs RegToNum( char c )
-{
-    switch ( c )
-    {
-        case 'a':
-            return ra;
-            break;
-        case 'b':
-            return rb;
-            break;
-        case 'c':
-            return rc;
-            break;
-        case 'd':
-            return rd;
-            break;
-        case 'x':
-            return rx;
-            break;
-        
-        default:
-            return error;
-    }
-}
-
-int GetFileSize(FILE *text, int start)
-{
-    fseek( text, 0, SEEK_END );
-    int LetterNumber = ftell( text );
-    fseek( text, 0, SEEK_SET );
-    return LetterNumber;
-}
-
-static int GetLineNumber( char* code, int codeSize )
-{
-    int lineNumber = 1;
-    for( size_t i = 0; i < codeSize; i++ )
-    {
-        if ( code[i] == '\n' )
-            lineNumber++;
-
-    }
-    return lineNumber;
-
-}
-
 static void CreateBufferOfLines( Asm* ass )
 {
     int line = 1;
@@ -113,44 +20,8 @@ void def()
 
 }
 
-/*
-int SkipNonSpaces(char* source_command_str, int begin)
-{
-
-	char tmp = source_command_str[begin];
-
-	while ( tmp != ' ' && tmp != '\t' && tmp != '\0' )
-	{
-		begin++;
-		tmp = source_command_str[begin];
-	}
-
-	return begin;
-}
-
-static int SkipSpaces( char* source_command_str, int begin )
-{
-
-	char tmp = source_command_str[begin];
-
-	while ( ( tmp == ' ' || tmp == '\t' ) && tmp != '\0' ) 
-	{ 
-		begin++;
-		tmp = source_command_str[begin];
-	}
-	
-	return begin;
-}*/
-
 int ReadLine( Asm* ass, char* curStr, Com* command )
 {
-    
-    //int arg = 0;
-    //CPU cmd = {};
-    //char* cmd = ( char* )calloc( 10000, sizeof( char ) );
-
-    //printf("%s %d\n",curStr,strlen(curStr));
-
 
     command->cmdCode = ( char* )calloc( strlen(curStr), sizeof( char ) );
     char* reg = ( char* )calloc( strlen(curStr), sizeof( char ) );
@@ -160,7 +31,7 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "commands.h"
+        #include "cmds.h"
 		#undef DEF_CMD
         SetCommandBitCode( &command->CPUcmdarg.cmd, IMM ); 
         ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
@@ -173,7 +44,7 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "commands.h"
+        #include "cmds.h"
 		#undef DEF_CMD
 
         #define REG_DEF(reg_name, reg_cpu_code)                                \
@@ -193,68 +64,12 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "commands.h"
+        #include "cmds.h"
 		#undef DEF_CMD
         ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
         ass->cmdNum++;
     }
-
-
-    //printf("%lf\n",command->CPUcmdarg.arg);
-    //printf("%s %d\n\n",command->cmdCode,strlen(command->cmdCode));
-
-
-
-    /*int begin = SkipSpaces(curStr, 0);
-	int end = SkipNonSpaces(curStr, begin);
-    command->cmdCode = ( char* )calloc( end - begin, sizeof( char ) );
-    strncpy(command->cmdCode, curStr + begin, end - begin);
-
-	while ( curStr[end] != '\0' )
-	{
-        
-	    begin = SkipSpaces(curStr, end);
-		end = SkipNonSpaces(curStr, begin);
-
-        command->cmdArg = ( char* )calloc( end - begin, sizeof( char ) );
-		strncat( command->cmdArg, curStr + begin, end - begin );
-        //printf("%s\n",command->cmdArg);
-        
-	}*/
 }
-
-/*
-int StrToNum(  Com* command )
-{
-
-	int isNegative = 0;
-	int charNum = 0;
-	Elem_t num = 0;
-	if ( command->cmdArg[0] == '-' )
-	{
-		isNegative = 1;
-		charNum = 1;
-	}
-
-    int strLen = strlen( command->cmdArg );
-    //printf("%d\n",strLen);
-    for ( ;charNum < strLen; charNum++ )
-	{
-		if( !isdigit( command->cmdArg[charNum] ) )
-		{
-			return 0;
-		}
-		num += ( command->cmdArg[charNum] - '0' ) * pow( 10, strLen - charNum - 1 );  
-        //printf(" %d\n",1 * pow( 10, strLen - charNum - 1 )  );
-	}
-	if( isNegative )
-    {
-        command->CPUcmdarg.arg = -num;
-		return 1;
-    }
-	command->CPUcmdarg.arg = num;
-    return 1;
-}*/
 
 int ProcessingASM( Asm* ass, const char* equation )
 {
@@ -265,16 +80,6 @@ int ProcessingASM( Asm* ass, const char* equation )
 	{
         char* curStr = ass->linestr[line_num - 1];
 		ReadLine( ass, curStr, command );
-        
-        /*#define DEF_CMD( name, cpu_code, args_num, ...)                      \
-	    if ( strcmp(command->cmdCode, #name) == 0 )  \
-	    {                                                                      \
-		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;                \
-            if(TrySetArgCPUCode( ass,command, args_num )) \
-                int is_command_args_valid = 1;\
-	    }
-        #include "commands.h"
-		#undef DEF_CMD*/
         ass->curCmd = {};
         Com* command = &ass->curCmd;
 	}

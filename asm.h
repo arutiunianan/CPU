@@ -1,19 +1,8 @@
 #ifndef ASM_H_
 #define ASM_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <math.h> 
-#include <string.h>
 #include "cpu.h"
-
-typedef struct Lines
-{
-    char* str;
-    int length;
-
-}Lines;
+#include "commands.h"
 
 typedef struct Asm
 {

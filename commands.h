@@ -1,91 +1,85 @@
-#define POP_STK( num ) StackPop( &cpu->stack, &num)
-#define PUSH_STK( num ) StackPush( &cpu->stack, num)
+#ifndef COM_H_
+#define COM_H_
 
-//#define POP_STK ( arg ) StackPop( &cpu->stack, &arg)
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <math.h> 
+#include <assert.h>
+#include <string.h>
+#include "stack/stack.h"
 
-DEF_CMD(HLT, 0, 0,
-    {
-        CPUDtor( cpu );
-        printf( "end\n" );
-        return 0;
-    }
-)
+enum argType
+{
+    NOARG = 0,
+    IMM = 1 << 5, 
+	REG = 1 << 6,
+};
 
-DEF_CMD(PUSH, 1, 1,
-    {
-        PUSH_STK(GetProperArgument( cpu ));
-    }
-)
+typedef struct Lines
+{
+    char* str;
+    int length;
 
-DEF_CMD(POP, 2, 1,
-    {
-        Elem_t num = 0;
-        POP_STK( num );
-        //printf("%lf\n",num);
-        SetReg( cpu, command->CPUcmdarg.arg, num );
-    }
-)
- 
-DEF_CMD(ADD, 3, 0,
-    {
-        Elem_t val1 = 0;
-        Elem_t val2 = 0;
-        POP_STK(val1);
-        POP_STK(val2);
-        PUSH_STK(val1 + val2);
-    }
-)
+}Lines;
 
-DEF_CMD(MUL, 4, 0,
-    {
-        Elem_t val1 = 0;
-        Elem_t val2 = 0;
-        POP_STK(val1);
-        POP_STK(val2);
-        PUSH_STK(val1 * val2);
-    }
-)
+typedef enum Regs
+{
+    ra = 1,
+    rb = 2,
+    rc = 3,
+    rd = 4,
+    rx = 5,
+    error = 0,
+}Regs;
 
-DEF_CMD(SUB, 5, 0,
-    {
-        Elem_t val1 = 0;
-        Elem_t val2 = 0;
-        POP_STK(val1);
-        POP_STK(val2);
-        PUSH_STK(val2 - val1);
-    }
-)
+typedef enum CPUCommand 
+{
+	#define DEF_CMD(name, cpu_code, ...) name = cpu_code,
 
-DEF_CMD(DIV, 6, 0,
-    {
-        Elem_t val1 = 0;
-        Elem_t val2 = 0;
-        POP_STK(val1);
-        POP_STK(val2);
-        PUSH_STK(val2 / val1);
-    }
-)
+	#include "cmds.h"
 
-DEF_CMD(OUT, 7, 0,
-    {
-        Elem_t num = 0;
-        POP_STK(num);
+	#undef DEF_CMD
+}CPUCommand;
 
-        printf("%lf", num);
-    }
-)
+typedef struct CPU
+{
+    CPUCommand cmd;
+    Elem_t arg;
+}CPU;
 
-DEF_CMD(IN, 9, 0,
-    {
-        Elem_t num = 0;
-        printf("IN: ");
-        scanf("%lf", &num);
 
-        PUSH_STK(num);
-    }
-)
+typedef struct Com
+{
+	char* cmdCode;
+	char* cmdArg;
+    CPU CPUcmdarg;
+    //int CPUcmd;
+    //int CPUarg;
+    int argNum;
+	argType cmdArgType;
+}Com;
 
-#undef DEF_CMD
 
-#undef POP_STK
-#undef PUSH_STK
+enum Commands
+{
+    #define DEF_CMD(cmd_name, cmd_num, cmd_n_args, cmd_code) \
+        CMD_ ## cmd_name = (cmd_num),
+
+    //#define DEF_JMP(jmp_name, jmp_num, jmp_sign)                 \
+    //    JMP_ ## jmp_name = (jmp_num),
+
+    #include "cmds.h"
+
+    #undef DEF_CMD
+    //#undef DEF_JMP
+
+};
+
+void SetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type);
+void UnsetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type);
+void SetCommandTypeBitCode(argType* old_arg_type, argType new_arg_type);
+int GetFileSize(FILE *text, int start);
+int GetLineNumber( char* code, int codeSize );
+
+#endif // #define COM_H_
