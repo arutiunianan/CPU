@@ -1,4 +1,21 @@
-#include "cpu.h"
+#include "dasm.h"
+
+char* GetReg(Elem_t reg)
+{
+	//assert(cpu != NULL);
+
+	switch ((int)reg)
+	{
+		#define REG_DEF(reg_name, reg_value)     \
+		case reg_value:						     \
+			return #reg_name;				 \
+			break;							     
+
+		#include "regs.h"
+		
+		#undef REG_DEF
+	}
+}
 
 int IsValidRegArg( Com* command )
 {
@@ -25,43 +42,6 @@ int IsValidRegArg( Com* command )
 	}
 
 	return 1;
-}
-
-void SetReg(Cpu* cpu, Elem_t reg, Elem_t value)
-{
-	//assert(cpu != NULL);
-
-	switch ((int)reg)
-	{
-		#define REG_DEF(reg_name, reg_value)     \
-		case reg_name:						     \
-			cpu->reg_name = value;				 \
-			break;							     
-
-		#include "regs.h"
-		
-		#undef REG_DEF
-	}
-}
-
-Elem_t GetProperArgument(Cpu* cpu)
-{
-        if (cpu->curCmd.cmdArgType & IMM)
-		    return cpu->curCmd.CPUcmdarg.arg;
-	    else if (cpu->curCmd.cmdArgType & REG)
-            switch ((int)cpu->curCmd.CPUcmdarg.arg)
-	        {
-		        #define REG_DEF(reg_name, reg_value)       \
-		            case reg_value:						 \
-                    \
-			        return cpu->reg_name;		     \
-
-		        #include "regs.h"
-
-		        #undef REG_DEF
-	        }
-	    //else
-		    //assert(0);
 }
 
 int IsValidCommand(Com* command)
@@ -104,8 +84,10 @@ int IsValidCommand(Com* command)
 	//else if(command->CPUcmdarg.arg != 0)
 		//command->error == INVALID_SYNTAX;
 	else
+    {
+        command->cmdArgType = NOARG;
 		command->argNum = 0;
-
+    }
     switch (command->CPUcmdarg.cmd)
 	{
 		#define DEF_CMD( cmd_name, cmd_num, cmd_n_args, cmd_code )			\
@@ -118,47 +100,55 @@ int IsValidCommand(Com* command)
 			return 0;
 	}
 	#undef DEF_CMD
+	
 
 }
 
-int CPUCtor( Cpu* cpu, const char* binaryFile )
-{
 
-    FILE *file = fopen( binaryFile, "rb" );
+
+int DASMCtor( Dasm* dasm, const char* equation )
+{
+    FILE *file = fopen( equation, "rb" );
     //ошибка открытия
 
     //fread( &cpu->version, sizeof( char ), sizeof( cpu->version ), file );
     //ошибка файл маленького размера
     //int startOfCode = ftell( file );
     int startOfCode = 0;
-    cpu->codeSize = GetFileSize( file, startOfCode );
-    cpu->cmdNum = cpu->codeSize/sizeof(CPU);
+    dasm->codeSize = GetFileSize( file, startOfCode );
+    dasm->cmdNum = dasm->codeSize/sizeof(CPU);
 
-    cpu->cmds = ( CPU* )calloc( sizeof( char ), cpu->codeSize);
-    fread(cpu->cmds, sizeof( char ), cpu->codeSize, file );
+    dasm->cmds = ( CPU* )calloc( sizeof( char ), dasm->codeSize);
+    fread(dasm->cmds, sizeof( char ), dasm->codeSize, file );
 
     fclose( file );
-    
-    StackCtor( &cpu->stack );
 
-    return 0;
 }
 
-int ProcessingCPU( Cpu* cpu )
+void ProcessingDASM( Dasm* dasm, const char* equation )
 {
 
-    int* line_num = &cpu->current_line_num;
-    Com* command = &cpu->curCmd;
-    for (*line_num = 1; *line_num < cpu->cmdNum + 1; (*line_num)++)
+    int* line_num = &dasm->current_line_num;
+    Com* command = &dasm->curCmd;
+    FILE *file = fopen( equation, "w" );
+    for (*line_num = 1; *line_num < dasm->cmdNum + 1; (*line_num)++)
 	{
-        command->CPUcmdarg.cmd = *(CPUCommand*)((char*)cpu->cmds + (*line_num-1) * sizeof(CPU));
-		command->CPUcmdarg.arg  = *(Elem_t*)((char*)cpu->cmds + (*line_num-1) * sizeof(CPU) + 8);
+        command->CPUcmdarg.cmd = *(CPUCommand*)((char*)dasm->cmds + (*line_num-1) * sizeof(CPU));
+		command->CPUcmdarg.arg  = *(Elem_t*)((char*)dasm->cmds + (*line_num-1) * sizeof(CPU) + 8);
 
         if(IsValidCommand( command ) )
         {
             switch (command->CPUcmdarg.cmd)
 			{
-				#define DEF_CMD(cmd_name, cmd_num, cmd_n_args, cmd_code) case cmd_name: cmd_code; break;
+				#define DEF_CMD(cmd_name, cmd_num, cmd_n_args, cmd_code) \
+                    case cmd_name: \
+                        if(command->cmdArgType == IMM) \
+                            fprintf(file,"%s %lf\n",#cmd_name,command->CPUcmdarg.arg); \
+                        else if(command->cmdArgType == REG) \
+                            fprintf(file,"%s %s\n",#cmd_name,GetReg(command->CPUcmdarg.arg)); \
+                        else  \
+                            fprintf(file,"%s\n",#cmd_name); \
+                        break;
 				
 				#include "cmds.h"
 
@@ -169,38 +159,24 @@ int ProcessingCPU( Cpu* cpu )
 
 }
 
-int CPUDtor( Cpu* cpu )
-{
-    StackDtor( &cpu->stack );
-    //cpu->code = "";
-    cpu->codeSize = -1;
-    //cpu->version = -1;
-    cpu = NULL;
 
-}
 
 int main( int argc, const char* argv[] )
 {
-    Cpu cpu = {};
+    Dasm dasm = {};
 
     if ( argc == 1 )
     {
-        CPUCtor( &cpu, "ass.txt" );
+        DASMCtor( &dasm, "ass.txt" );
+        ProcessingDASM( &dasm, "dass.txt" );
     }
-    else if ( argc == 2 )
+    else if ( argc == 3 )
     {
-        CPUCtor( &cpu, argv[1] );
-
+        DASMCtor( &dasm, argv[1] );
     }
     else
     {
         printf( "Invalid number of args to program" );
-        return 1;
     }
-
-    ProcessingCPU( &cpu );
-    for(int i = 0; i < cpu.stack.size;i++ )
-        printf("\n%lf\n",cpu.stack.data[i]);
-    //CPUDtor( &cpu );
 
 }

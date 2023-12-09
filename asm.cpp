@@ -5,18 +5,40 @@ static void CreateBufferOfLines( Asm* ass )
     int line = 1;
     ass->linestr[0] = ass->code;
     for( int i = 0; i < ass->codeSize - 1; i++ )
-
         if( ass->code[i] == '\n' )
         {
             ass->linestr[line++] = &( ass->code[i+1] );
 
             ass->code[i] = '\0';
         }
-
 }
 
-void def()
+void def( Asm* ass, Com* command, argType argtype, char* reg )
 {
+
+    #define DEF_CMD( name, cpu_code, args_num, ...)                      \
+	if ( strcmp(command->cmdCode, #name) == 0 )  \
+		command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
+    #include "cmds.h"
+	#undef DEF_CMD
+
+    SetCommandBitCode( &command->CPUcmdarg.cmd, argtype ); 
+    ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
+    
+    if( argtype != NOARG )
+    {
+        if( argtype == REG )
+        {
+            #define REG_DEF(reg_name, reg_cpu_code)                                \
+	            if(strcmp(#reg_name, reg) == 0)     \
+		        command->CPUcmdarg.arg = reg_cpu_code;                                       
+	        #include "regs.h"
+	        #undef REG_DEF
+        }
+        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
+    }
+
+    ass->cmdNum++;
 
 }
 
@@ -27,7 +49,7 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
     char* reg = ( char* )calloc( strlen(curStr), sizeof( char ) );
     if ( sscanf(curStr,"%s %lf",command->cmdCode,&command->CPUcmdarg.arg) == 2 )
     {
-
+        //def(ass,command,IMM,reg);
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
@@ -39,8 +61,8 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
         ass->cmdNum++;
     }
     else if( sscanf(curStr,"%s %s",command->cmdCode,reg) == 2 )
-    {
-
+    {//def(ass,command,REG,reg);
+        
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
@@ -57,10 +79,11 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
         ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
         ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
         ass->cmdNum++;
-
+        
     }
     else
-    {
+    {//def(ass,command,NOARG,reg);
+        
         #define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
@@ -68,6 +91,7 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
 		#undef DEF_CMD
         ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
         ass->cmdNum++;
+        
     }
 }
 

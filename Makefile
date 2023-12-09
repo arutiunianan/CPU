@@ -9,6 +9,9 @@ clean_cpu:
 clean_asm:
 	rm -rf *.o asm
 
+clean_dasm:
+	rm -rf *.o dasm
+
 test_cpu:
 	make
 	./cpu
@@ -17,3 +20,7 @@ test_asm:
 	g++ $(CFLAGS) asm.cpp commands.cpp -o asm
 	./asm
 	make clean_asm
+test_dasm:
+	g++ $(CFLAGS) dasm.cpp commands.cpp -o dasm
+	./dasm
+	make clean_dasm

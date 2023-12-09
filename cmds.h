@@ -21,7 +21,6 @@ DEF_CMD(POP, 2, 1,
     {
         Elem_t num = 0;
         POP_STK( num );
-        //printf("%lf\n",num);
         SetReg( cpu, command->CPUcmdarg.arg, num );
     }
 )

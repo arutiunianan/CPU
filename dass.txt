@@ -1,4 +1,4 @@
-PUSH 1
+PUSH 1.000000
 IN
 POP rc
 PUSH rc
