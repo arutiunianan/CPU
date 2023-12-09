@@ -32,7 +32,7 @@ int ASMCtor( Asm* ass, const char* equation );
 int ASMDtor( Asm* ass );
 int ProcessingASM( Asm* ass, const char* equation );
 
-int ReadLine( char* curStr, Com* command );
+int ReadLine( Asm* ass, char* curStr, Com* command );
 int StrToNum(  Com* command );
 enum Regs RegToNum( char c );
 

@@ -1,4 +1,6 @@
-PUSH 2
-PUSH 478
-SUB 4
-PUSH 5
+IN
+IN
+IN
+POP rc
+POP rb
+POP ra

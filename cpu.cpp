@@ -41,21 +41,38 @@ int IsValidRegArg( Com* command )
 	return 1;
 }
 
+void SetReg(Cpu* cpu, Elem_t reg, Elem_t value)
+{
+	//assert(cpu != NULL);
+
+	switch ((int)reg)
+	{
+		#define REG_DEF(reg_name, reg_value)     \
+		case reg_name:						     \
+			cpu->reg_name = value;				 \
+			break;							     
+
+		#include "regs.h"
+		
+		#undef REG_DEF
+	}
+}
+
 Elem_t GetProperArgument(Cpu* cpu)
 {
         if (cpu->curCmd.cmdArgType & IMM)			            
 		    return cpu->curCmd.CPUcmdarg.arg;
-	    /*else if (cpu->curCmd.cmdArgType & REG)	
+	    else if (cpu->curCmd.cmdArgType & REG)	
             switch ((int)cpu->curCmd.CPUcmdarg.arg)
 	        {
-		    #define REG_DEF(reg_name, reg_value)       \
-		        case reg_name:						 \
-			    return cmd_arg;		     \
+		        #define REG_DEF(reg_name, reg_value)       \
+		            case reg_name:						 \
+			        return cpu->reg_name;		     \
 
-		    #include "regs.h"
+		        #include "regs.h"
 
-		    #undef REG_DEF
-	        }					*/					
+		        #undef REG_DEF
+	        }									
 	    //else
 		    //assert(0);
 }
@@ -84,7 +101,7 @@ int IsValidCommand(Com* command)
 		{
 			UnsetCommandBitCode(&command->CPUcmdarg.cmd, IMM);
 			SetCommandTypeBitCode(&command->cmdArgType, IMM);
-            printf("%d\n",command->CPUcmdarg.arg);
+            //printf("%d\n",command->CPUcmdarg.cmd);
 		
             //if(command->CPUcmdarg.cmd == POP)
             //{
@@ -203,8 +220,8 @@ int main( int argc, const char* argv[] )
     }
 
     ProcessingCPU( &cpu );
-    /*for(int i = 0; i < cpu.stack.size;i++ )
-        printf("%d\n",cpu.stack.data[i]);*/
+    //for(int i = 0; i < cpu.stack.size;i++ )
+    //    printf("%lf\n",cpu.stack.data[i]);
     //CPUDtor( &cpu );
 
 }

@@ -9,11 +9,11 @@ clean_cpu:
 clean_asm:
 	rm -rf *.o asm
 
-tests1:
+test_cpu:
 	make
 	./cpu
 	make clean_cpu
-tests2:
+test_asm:
 	g++ $(CFLAGS) asm.cpp -o asm
 	./asm
 	make clean_asm

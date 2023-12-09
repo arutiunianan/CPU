@@ -75,6 +75,11 @@ typedef struct Cpu
     Com curCmd;
     CPU* cmds;
     int cmdNum;
+    #define REG_DEF(name, ...) Elem_t name;
+
+	#include "regs.h"
+
+	#undef REG_DEF
 }Cpu;
 
 
@@ -82,5 +87,6 @@ int ProcessingCPU( Cpu* cpu );
 int CPUCtor( Cpu* cpu, const char* file );
 int CPUDtor( Cpu* cpu );
 int GetFileSize( FILE *text, int startOfCode );
+void SetReg(Cpu* cpu, Elem_t reg, Elem_t value);
 
 #endif // #define CPU_H_

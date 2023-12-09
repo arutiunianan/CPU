@@ -4,7 +4,7 @@ void SetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type)
 {
 	*(char*)command_cpu_code |= (char)arg_type;
 }
-
+/*
 int TrySetArgCPUCode(Asm* ass, Com* command, int needed_args_num) 
 {
     if( needed_args_num )
@@ -44,8 +44,8 @@ int TrySetArgCPUCode(Asm* ass, Com* command, int needed_args_num)
 	if (command->arguments_num > 0)
 		ResolveTypeOfCommandArg(assembler, command);
 
-	return true;*/
-}
+	return true;
+}*/
 
 enum Regs RegToNum( char c )
 {
@@ -108,6 +108,12 @@ static void CreateBufferOfLines( Asm* ass )
 
 }
 
+void def()
+{
+
+}
+
+/*
 int SkipNonSpaces(char* source_command_str, int begin)
 {
 
@@ -134,24 +140,75 @@ static int SkipSpaces( char* source_command_str, int begin )
 	}
 	
 	return begin;
-}
+}*/
 
-int ReadLine( char* curStr, Com* command )
+int ReadLine( Asm* ass, char* curStr, Com* command )
 {
-    int begin = SkipSpaces(curStr, 0);
-	int end = SkipNonSpaces(curStr, begin);
-    command->cmdCode = ( char* )calloc( end - begin, sizeof( char ) );
-    strncpy(command->cmdCode, curStr + begin, end - begin);
-
+    
     //int arg = 0;
     //CPU cmd = {};
     //char* cmd = ( char* )calloc( 10000, sizeof( char ) );
 
+    //printf("%s %d\n",curStr,strlen(curStr));
 
-    //printf("%s\n",curStr);
-    //sscanf(curStr,"%s %a",cmd,&arg);
-    //printf("%d\n",arg);
 
+    command->cmdCode = ( char* )calloc( strlen(curStr), sizeof( char ) );
+    char* reg = ( char* )calloc( strlen(curStr), sizeof( char ) );
+    if ( sscanf(curStr,"%s %lf",command->cmdCode,&command->CPUcmdarg.arg) == 2 )
+    {
+
+        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
+	    if ( strcmp(command->cmdCode, #name) == 0 )  \
+		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
+        #include "commands.h"
+		#undef DEF_CMD
+        SetCommandBitCode( &command->CPUcmdarg.cmd, IMM ); 
+        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
+        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
+        ass->cmdNum++;
+    }
+    else if( sscanf(curStr,"%s %s",command->cmdCode,reg) == 2 )
+    {
+
+        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
+	    if ( strcmp(command->cmdCode, #name) == 0 )  \
+		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
+        #include "commands.h"
+		#undef DEF_CMD
+
+        #define REG_DEF(reg_name, reg_cpu_code)                                \
+	    if(strcmp(#reg_name, reg) == 0)     \
+		    command->CPUcmdarg.arg = reg_cpu_code;                                       
+	    #include "regs.h"
+	    #undef REG_DEF
+
+        SetCommandBitCode( &command->CPUcmdarg.cmd, REG );    
+        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
+        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
+        ass->cmdNum++;
+
+    }
+    else
+    {
+        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
+	    if ( strcmp(command->cmdCode, #name) == 0 )  \
+		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
+        #include "commands.h"
+		#undef DEF_CMD
+        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
+        ass->cmdNum++;
+    }
+
+
+    //printf("%lf\n",command->CPUcmdarg.arg);
+    //printf("%s %d\n\n",command->cmdCode,strlen(command->cmdCode));
+
+
+
+    /*int begin = SkipSpaces(curStr, 0);
+	int end = SkipNonSpaces(curStr, begin);
+    command->cmdCode = ( char* )calloc( end - begin, sizeof( char ) );
+    strncpy(command->cmdCode, curStr + begin, end - begin);
 
 	while ( curStr[end] != '\0' )
 	{
@@ -163,9 +220,10 @@ int ReadLine( char* curStr, Com* command )
 		strncat( command->cmdArg, curStr + begin, end - begin );
         //printf("%s\n",command->cmdArg);
         
-	}
+	}*/
 }
 
+/*
 int StrToNum(  Com* command )
 {
 
@@ -196,7 +254,7 @@ int StrToNum(  Com* command )
     }
 	command->CPUcmdarg.arg = num;
     return 1;
-}
+}*/
 
 int ProcessingASM( Asm* ass, const char* equation )
 {
@@ -206,9 +264,9 @@ int ProcessingASM( Asm* ass, const char* equation )
 	for ( int line_num = 1; line_num < ass->lineNumber + 1; line_num++ )
 	{
         char* curStr = ass->linestr[line_num - 1];
-		ReadLine( curStr, command );
+		ReadLine( ass, curStr, command );
         
-        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
+        /*#define DEF_CMD( name, cpu_code, args_num, ...)                      \
 	    if ( strcmp(command->cmdCode, #name) == 0 )  \
 	    {                                                                      \
 		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;                \
@@ -216,12 +274,14 @@ int ProcessingASM( Asm* ass, const char* equation )
                 int is_command_args_valid = 1;\
 	    }
         #include "commands.h"
-		#undef DEF_CMD
+		#undef DEF_CMD*/
         ass->curCmd = {};
         Com* command = &ass->curCmd;
 	}
 
     fwrite(ass->cmds, sizeof(CPU), ass->cmdNum, file);
+    for( int i = 0; i < ass->cmdNum; i++)
+        printf("%d  %lf\n",ass->cmds[i].cmd,ass->cmds[i].arg);
 
 }
 
