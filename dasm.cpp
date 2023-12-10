@@ -51,7 +51,7 @@ int IsValidCommand(Com* command)
 
 	//if (!command)
 	//	return 0;
-    if ( (char) command->CPUcmdarg.cmd & (IMM | REG) && command->CPUcmdarg.cmd != HLT)
+    if ( (char) command->CPUcmdarg.cmd & (IMM | REG | LAB) && command->CPUcmdarg.cmd != HLT)
     {
 
         if((char)command->CPUcmdarg.cmd & REG)
@@ -69,9 +69,7 @@ int IsValidCommand(Com* command)
 		{
 			UnsetCommandBitCode(&command->CPUcmdarg.cmd, IMM);
 			command->cmdArgType = IMM;
-            
-            //printf("%d\n",command->CPUcmdarg.cmd);
-		
+            		
             //if(command->CPUcmdarg.cmd == POP)
             //{
                 //command->error = POP_WITH_NUM;
@@ -79,6 +77,13 @@ int IsValidCommand(Com* command)
             //}
 
 			command->argNum = 1;
+        }
+        else if((char)command->CPUcmdarg.cmd & LAB)
+        {
+            UnsetCommandBitCode(&command->CPUcmdarg.cmd, LAB);
+            command->cmdArgType = LAB;
+
+            command->argNum = 1;
         }
     }
 	//else if(command->CPUcmdarg.arg != 0)
@@ -146,6 +151,8 @@ void ProcessingDASM( Dasm* dasm, const char* equation )
                             fprintf(file,"%s %lf\n",#cmd_name,command->CPUcmdarg.arg); \
                         else if(command->cmdArgType == REG) \
                             fprintf(file,"%s %s\n",#cmd_name,GetReg(command->CPUcmdarg.arg)); \
+                        else if(command->cmdArgType == LAB) \
+                            fprintf(file,"%s %lf\n",#cmd_name,command->CPUcmdarg.arg); \
                         else  \
                             fprintf(file,"%s\n",#cmd_name); \
                         break;

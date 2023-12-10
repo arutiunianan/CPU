@@ -1,5 +1,151 @@
-PUSH 1
-IN
-POP rc
-PUSH rc
-ADD
+CALL putCoef
+CALL solve
+CALL outputSolve
+HLT
+
+putCoef:
+	IN
+	IN
+	IN
+	POP rc
+	POP rb
+	POP ra
+	RET
+
+printNoRoots:
+	PUSH 78
+	PUSH 78
+	OUTC
+	OUTC
+	RET
+
+printInfRoots:
+	PUSH 70
+	PUSH 78
+	PUSH 73
+	OUTC
+	OUTC
+	OUTC
+	RET
+
+printOneRoot:
+	PUSH rxf
+	OUT
+	RET
+
+printTwoRoots:
+	PUSH rxf
+	PUSH rxs
+	OUT
+	OUT
+	RET
+
+outputSolve:
+	PUSH rr
+	PUSH 0
+	JE printNoRoots
+	PUSH rr
+	PUSH -1
+	JE printInfRoots
+	PUSH rr
+	PUSH 1
+	JE printOneRoot
+	PUSH rr
+	PUSH 2
+	JE printTwoRoots
+	RET
+
+discr:
+	PUSH rb
+	PUSH rb
+	MUL
+    PUSH 4
+	PUSH ra
+	PUSH rc
+	MUL
+	MUL
+	SUB
+	POP rd
+	RET
+
+cIzZero:
+	PUSH -1
+	POP rr
+	RET
+
+noRoots:
+	PUSH 0
+	POP rr
+	RET
+
+bIsZero:
+	PUSH rc
+	PUSH 0
+	JE cIzZero
+	JMP noRoots
+
+aIsZero:
+	PUSH rb
+	PUSH 0
+	JE bIsZero 
+	PUSH rb
+    PUSH 0
+	PUSH rc
+	SUB
+	DIV
+	POP rxf
+	PUSH 1
+	POP rr
+	RET
+
+discrIsZero:
+	PUSH 0
+    PUSH rb
+	SUB
+    PUSH 2
+	PUSH ra
+	MUL
+	DIV
+	POP rxf
+	PUSH 1
+	POP rr
+	RET
+
+solve:
+	PUSH ra
+	PUSH 0
+	JE aIsZero
+	CALL discr
+	PUSH rd
+	PUSH 0
+	JA noRoots
+	PUSH rd
+	PUSH 0
+	JE discrIsZero
+
+	PUSH rd
+	SQRT
+    PUSH 0
+	PUSH rb
+	SUB
+	ADD
+    PUSH ra
+	PUSH 2
+	MUL
+	DIV
+	POP rxf
+
+    PUSH 0
+	PUSH rb
+	SUB
+    PUSH rd
+    SQRT
+	SUB
+    PUSH ra
+	PUSH 2
+	MUL
+	DIV
+	POP rxs
+	PUSH 2
+	POP rr
+	RET

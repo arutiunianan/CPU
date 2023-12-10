@@ -14,6 +14,13 @@ enum argType
     NOARG = 0,
     IMM = 1 << 5, 
 	REG = 1 << 6,
+    LAB = 1 << 7,
+};
+
+struct Label 
+{
+	char* label_name;
+	int  label_address;
 };
 
 typedef struct Lines
@@ -29,7 +36,9 @@ typedef enum Regs
     rb = 2,
     rc = 3,
     rd = 4,
-    rx = 5,
+    rxf = 5,
+    rxs = 6,
+    rr = 7,
     error = 0,
 }Regs;
 
