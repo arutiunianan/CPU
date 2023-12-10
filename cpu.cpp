@@ -46,7 +46,7 @@ void SetReg(Cpu* cpu, Elem_t reg, Elem_t value)
 
 Elem_t GetProperArgument(Cpu* cpu)
 {
-        if (cpu->curCmd.cmdArgType & IMM)
+        if (cpu->curCmd.cmdArgType & IMM || cpu->curCmd.cmdArgType & LAB)
 		    return cpu->curCmd.CPUcmdarg.arg;
 	    else if (cpu->curCmd.cmdArgType & REG)
             switch ((int)cpu->curCmd.CPUcmdarg.arg)
@@ -71,7 +71,7 @@ int IsValidCommand(Com* command)
 
 	//if (!command)
 	//	return 0;
-    if ( (char) command->CPUcmdarg.cmd & (IMM | REG) && command->CPUcmdarg.cmd != HLT)
+    if ( (char) command->CPUcmdarg.cmd & (IMM | REG | LAB) && command->CPUcmdarg.cmd != HLT)
     {
 
         if((char)command->CPUcmdarg.cmd & REG)
@@ -89,6 +89,21 @@ int IsValidCommand(Com* command)
 		{
 			UnsetCommandBitCode(&command->CPUcmdarg.cmd, IMM);
 			command->cmdArgType = IMM;
+            
+            //printf("%d\n",command->CPUcmdarg.cmd);
+		
+            //if(command->CPUcmdarg.cmd == POP)
+            //{
+                //command->error = POP_WITH_NUM;
+                //return 0;
+            //}
+
+			command->argNum = 1;
+        }
+        else if((char)command->CPUcmdarg.cmd & LAB)
+		{
+			UnsetCommandBitCode(&command->CPUcmdarg.cmd, LAB);
+			command->cmdArgType = LAB;
             
             //printf("%d\n",command->CPUcmdarg.cmd);
 		
@@ -166,7 +181,6 @@ int ProcessingCPU( Cpu* cpu )
 			}
         }
     }
-
 }
 
 int CPUDtor( Cpu* cpu )
@@ -199,8 +213,8 @@ int main( int argc, const char* argv[] )
     }
 
     ProcessingCPU( &cpu );
-    for(int i = 0; i < cpu.stack.size;i++ )
-        printf("\n%lf\n",cpu.stack.data[i]);
+    //for(int i = 0; i < cpu.stack.size; i++)
+    //    printf("%lf\n",cpu.stack.data[i]);
     //CPUDtor( &cpu );
 
 }

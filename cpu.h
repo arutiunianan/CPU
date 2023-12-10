@@ -9,9 +9,7 @@ typedef struct Cpu
 {
     Stack stack;
     int current_line_num;
-    //char* code;
     int codeSize;
-    //int version;
     Com curCmd;
     CPU* cmds;
     int cmdNum;

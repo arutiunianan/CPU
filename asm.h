@@ -8,8 +8,8 @@ typedef struct Asm
 {
     char* code;
     int codeSize;
-    //int version;
-    //Lines* lines;
+    Label* labels;
+    int labels_num;
     char** linestr;
     int lineNumber;
     Com curCmd;
@@ -23,6 +23,5 @@ int ProcessingASM( Asm* ass, const char* equation );
 
 int ReadLine( Asm* ass, char* curStr, Com* command );
 int StrToNum(  Com* command );
-enum Regs RegToNum( char c );
 
 #endif // #define ASM_H_

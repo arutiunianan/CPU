@@ -13,32 +13,66 @@ static void CreateBufferOfLines( Asm* ass )
         }
 }
 
-void def( Asm* ass, Com* command, argType argtype, char* reg )
+int IsLabel( Asm* ass, Com* command, char* label )
+{
+    strcat(label, ":");
+    for (size_t i = 0; i < ass->labels_num; i++)
+	{        
+		if(strcmp(label, ass->labels[i].label_name) == 0)
+		{
+			command->CPUcmdarg.arg = (double)ass->labels[i].label_address;
+            
+			return 1;
+		}
+	}
+    return 0;
+}
+
+int IsReg( Com* command, char* reg )
 {
 
+    #define REG_DEF(reg_name, reg_cpu_code)                                \
+	    if(strcmp(#reg_name, reg) == 0)     \
+        {   \
+            command->CPUcmdarg.arg = reg_cpu_code;   \
+            return 1;   \
+        }                                    
+	#include "regs.h"
+	#undef REG_DEF
+    return 0;
+
+}
+
+int IsCommand( Com* command )
+{
     #define DEF_CMD( name, cpu_code, args_num, ...)                      \
-	if ( strcmp(command->cmdCode, #name) == 0 )  \
-		command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
+	    if ( strcmp(command->cmdCode, #name) == 0 )  \
+        {  \
+		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code; \
+            \
+            return 1;  \
+        }
+            
     #include "cmds.h"
 	#undef DEF_CMD
+    //printf("%s\n",command->cmdCode);
+    return 0;
+}
 
-    SetCommandBitCode( &command->CPUcmdarg.cmd, argtype ); 
-    ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-    
-    if( argtype != NOARG )
+void def( Asm* ass, Com* command, argType argtype )
+{
+
+    if(IsCommand(command))
     {
-        if( argtype == REG )
-        {
-            #define REG_DEF(reg_name, reg_cpu_code)                                \
-	            if(strcmp(#reg_name, reg) == 0)     \
-		        command->CPUcmdarg.arg = reg_cpu_code;                                       
-	        #include "regs.h"
-	        #undef REG_DEF
-        }
-        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
-    }
+        SetCommandBitCode( &command->CPUcmdarg.cmd, argtype ); 
+        //printf("%d %s\n\n",command->CPUcmdarg.cmd,command->cmdCode);
+        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
+    
+        if( argtype != NOARG )
+            ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
 
-    ass->cmdNum++;
+        ass->cmdNum++;
+    }
 
 }
 
@@ -46,52 +80,29 @@ int ReadLine( Asm* ass, char* curStr, Com* command )
 {
 
     command->cmdCode = ( char* )calloc( strlen(curStr), sizeof( char ) );
-    char* reg = ( char* )calloc( strlen(curStr), sizeof( char ) );
+    char* str = ( char* )calloc( strlen(curStr), sizeof( char ) );
     if ( sscanf(curStr,"%s %lf",command->cmdCode,&command->CPUcmdarg.arg) == 2 )
+        def(ass,command,IMM);
+    else if( sscanf(curStr,"%s %s",command->cmdCode,str) == 2 )
     {
-        //def(ass,command,IMM,reg);
-        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
-	    if ( strcmp(command->cmdCode, #name) == 0 )  \
-		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "cmds.h"
-		#undef DEF_CMD
-        SetCommandBitCode( &command->CPUcmdarg.cmd, IMM ); 
-        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
-        ass->cmdNum++;
+        
+        if(IsReg(command,str)){
+            def(ass,command,REG);}
+        else if( IsLabel( ass, command, str ) )
+            def(ass,command,LAB);
+        //else
+        //printf("    %s \n",command->cmdCode);
+        //  error = Invalid arg
     }
-    else if( sscanf(curStr,"%s %s",command->cmdCode,reg) == 2 )
-    {//def(ass,command,REG,reg);
+    else if( sscanf(curStr,"%s %s",command->cmdCode,str) == 1  )
+    {//printf("%s\n",command->cmdCode);
         
-        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
-	    if ( strcmp(command->cmdCode, #name) == 0 )  \
-		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "cmds.h"
-		#undef DEF_CMD
-
-        #define REG_DEF(reg_name, reg_cpu_code)                                \
-	    if(strcmp(#reg_name, reg) == 0)     \
-		    command->CPUcmdarg.arg = reg_cpu_code;                                       
-	    #include "regs.h"
-	    #undef REG_DEF
-
-        SetCommandBitCode( &command->CPUcmdarg.cmd, REG );    
-        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-        ass->cmds[ass->cmdNum].arg = command->CPUcmdarg.arg;
-        ass->cmdNum++;
-        
+        if( command->cmdCode[strlen(command->cmdCode) - 1] != ':' )
+            def(ass,command,NOARG);
     }
     else
-    {//def(ass,command,NOARG,reg);
-        
-        #define DEF_CMD( name, cpu_code, args_num, ...)                      \
-	    if ( strcmp(command->cmdCode, #name) == 0 )  \
-		    command->CPUcmdarg.cmd = (CPUCommand)cpu_code;
-        #include "cmds.h"
-		#undef DEF_CMD
-        ass->cmds[ass->cmdNum].cmd = command->CPUcmdarg.cmd;
-        ass->cmdNum++;
-        
+    {
+        //printf("%s\n",command->cmdCode);
     }
 }
 
@@ -100,8 +111,41 @@ int ProcessingASM( Asm* ass, const char* equation )
     Com* command = &ass->curCmd;
     FILE *file = fopen( equation, "w" );
 
+    ass->labels = ( Label* )calloc( ass->lineNumber, sizeof( Label ) );
+    int blank_lines_counter = 0;
+    char* p; 
+
+    for ( int line_num = 1; line_num < ass->lineNumber + 1; line_num++ )
+	{
+        char* curStr = ass->linestr[line_num - 1];
+        int cmdSize = strlen(curStr);
+		command->cmdCode = ( char* )calloc( cmdSize, sizeof( char ) );
+        char* trash = ( char* )calloc( cmdSize, sizeof( char ) );
+                        
+        if ( sscanf(curStr,"%s %s",command->cmdCode,trash) == 1 )
+        { 
+
+            if( command->cmdCode[cmdSize - 1] == ':')
+            {
+                
+                ass->labels[ass->labels_num].label_name = ( char* )calloc( cmdSize, sizeof( char ) );
+                ass->labels[ass->labels_num].label_name = curStr;
+                
+                ass->labels[ass->labels_num].label_address = line_num - ass->labels_num - blank_lines_counter;
+                ass->labels_num++;
+                
+            }
+        }
+        else if(sscanf(curStr,"%s %s",command->cmdCode,trash) == -1)
+            blank_lines_counter++;
+
+        ass->curCmd = {};
+        Com* command = &ass->curCmd;
+	}
+
 	for ( int line_num = 1; line_num < ass->lineNumber + 1; line_num++ )
 	{
+        
         char* curStr = ass->linestr[line_num - 1];
 		ReadLine( ass, curStr, command );
         ass->curCmd = {};
@@ -109,8 +153,8 @@ int ProcessingASM( Asm* ass, const char* equation )
 	}
 
     fwrite(ass->cmds, sizeof(CPU), ass->cmdNum, file);
-    for( int i = 0; i < ass->cmdNum; i++)
-        printf("%d  %lf\n",ass->cmds[i].cmd,ass->cmds[i].arg);
+    //for(int i = 0; i < ass->labels_num; i++)
+    //    printf("%s\n",ass->labels[i].label_name);
 
 }
 
