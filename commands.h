@@ -9,25 +9,39 @@
 #include <string.h>
 #include "stack/stack.h"
 
-enum argType
+#define CHECK_ERROR( obj, condition, error )  \
+	if( condition )						     \
+		SetErrorBit( &obj->errors, error );     \
+	else								       \
+		UnsetErrorBit( &obj->errors, error );
+
+#define ERROR_PROCESSING( structure, StructDump, StructDtor, line_of_file ) \
+	if ( structure->errors )												 \
+	{																		  \
+		StructDump( structure, line_of_file, stderr );						   \
+		StructDtor( structure );											    \
+		return structure->errors;											     \
+	}																			  \
+	StructDump( structure, line_of_file, structure->log );								  
+
+typedef enum argType
 {
     NOARG = 0,
     IMM = 1 << 5, 
 	REG = 1 << 6,
     LAB = 1 << 7,
-};
+}argType;
 
-struct Label 
+typedef struct Label 
 {
 	char* label_name;
 	int  label_address;
-};
+}Label;
 
 typedef struct Lines
 {
     char* str;
     int length;
-
 }Lines;
 
 typedef enum Regs
@@ -44,10 +58,9 @@ typedef enum Regs
 
 typedef enum CPUCommand 
 {
-	#define DEF_CMD(name, cpu_code, ...) name = cpu_code,
+	#define DEF_CMD( name, cpu_code, ... ) name = cpu_code,
 
 	#include "cmds.h"
-
 	#undef DEF_CMD
 }CPUCommand;
 
@@ -63,28 +76,27 @@ typedef struct Com
 	char* cmdCode;
 	char* cmdArg;
     CPU CPUcmdarg;
-    //int CPUcmd;
-    //int CPUarg;
     int argNum;
 	argType cmdArgType;
 }Com;
 
 
-enum Commands
+typedef enum Commands
 {
-    #define DEF_CMD(cmd_name, cmd_num, cmd_n_args, cmd_code) \
-        CMD_ ## cmd_name = (cmd_num),
+    #define DEF_CMD( cmd_name, cmd_num, cmd_n_args, cmd_code ) \
+        CMD_ ## cmd_name = ( cmd_num ),
 
-    //#define DEF_JMP(jmp_name, jmp_num, jmp_sign)                 \
-    //    JMP_ ## jmp_name = (jmp_num),
+    #define DEF_JMP( jmp_name, jmp_num, jmp_sign )                 \
+        JMP_ ## jmp_name = ( jmp_num ),
 
     #include "cmds.h"
 
     #undef DEF_CMD
-    //#undef DEF_JMP
+    #undef DEF_JMP
+}Commands;
 
-};
-
+void SetErrorBit(int* error, int errorbit);
+void UnsetErrorBit(int* error, int errorbit);
 void SetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type);
 void UnsetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type);
 void SetCommandTypeBitCode(argType* old_arg_type, argType new_arg_type);

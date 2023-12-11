@@ -3,7 +3,6 @@
 
 DEF_CMD(HLT, 0, 0,
     {
-        CPUDtor( cpu );
         printf( "\nend\n" );
         return 0;
     }
@@ -12,10 +11,6 @@ DEF_CMD(HLT, 0, 0,
 DEF_CMD(PUSH, 1, 1,
     {
         PUSH_STK(GetProperArgument( cpu ));
-        printf("PUSH\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -34,10 +29,6 @@ DEF_CMD(ADD, 3, 0,
         POP_STK(val1);
         POP_STK(val2);
         PUSH_STK(val1 + val2);
-        printf("ADD +\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -48,10 +39,6 @@ DEF_CMD(MUL, 4, 0,
         POP_STK(val1);
         POP_STK(val2);
         PUSH_STK(val1 * val2);
-        printf("MUL *\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -62,10 +49,6 @@ DEF_CMD(SUB, 5, 0,
         POP_STK(val1);
         POP_STK(val2);
         PUSH_STK(val2 - val1);
-        printf("SUB -\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -76,10 +59,6 @@ DEF_CMD(DIV, 6, 0,
         POP_STK(val1);
         POP_STK(val2);
         PUSH_STK(val2 / val1);
-        printf("DIV /\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -88,10 +67,6 @@ DEF_CMD(SQRT, 7, 0,
         Elem_t val = 0;
         POP_STK(val);
         PUSH_STK(sqrt(val));
-        printf("SQRT\n");
-        for(int i = 0; i < cpu->stack.size; i++)
-            printf("%lf\n",cpu->stack.data[i]);
-        printf("\n\n");
     }
 )
 
@@ -108,7 +83,8 @@ DEF_CMD(IN, 10, 0,
     {
         Elem_t num = 0;
         printf("IN: ");
-        scanf("%lf", &num);
+        if( scanf("%lf", &num) != 1)
+            SetErrorBit(&cpu->errors, CPU_WRONG_INPUT);
 
         PUSH_STK(num);
     }
