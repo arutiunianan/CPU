@@ -3,6 +3,15 @@ CFLAGS = -g -ansi -std=gnu++2a -Wc++11-compat -Wc++14-compat -Wc++17-compat -Wal
 all:
 	g++ $(CFLAGS) cpu.cpp stack/stack.cpp stack/hash.cpp commands.cpp -o cpu
 
+asm: asm.o commands.o
+	g++ asm.o commands.o -o asm
+
+cpu: cpu.o commands.o stack.o hash.o
+	g++ cpu.o commands.o stack.o hash.o -o cpu
+
+dasm: dasm.o commands.o
+	g++ dasm.o commands.o -o dasm
+
 clean_cpu:
 	rm -rf *.o cpu
 
@@ -12,15 +21,20 @@ clean_asm:
 clean_dasm:
 	rm -rf *.o dasm
 
-test_cpu:
-	make
-	./cpu
-	make clean_cpu
-test_asm:
-	g++ $(CFLAGS) asm.cpp commands.cpp -o asm
-	./asm
-	make clean_asm
-test_dasm:
-	g++ $(CFLAGS) dasm.cpp commands.cpp -o dasm
-	./dasm
-	make clean_dasm
+cpu.o: cpu.cpp
+	g++ $(CFLAGS) cpu.cpp
+
+commands.o: commands.cpp
+	g++ $(CFLAGS) commands.cpp
+
+stack.o: stack/stack.cpp
+	g++ $(CFLAGS) stack/stack.cpp
+
+hash.o: stack/hash.cpp
+	g++ $(CFLAGS) stack/hash.cpp
+
+asm.o: asm.cpp
+	g++ $(CFLAGS) asm.cpp
+
+dasm.o: dasm.cpp
+	g++ $(CFLAGS) dasm.cpp
