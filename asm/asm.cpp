@@ -26,13 +26,13 @@ int IsLabel(AsmFile* ass_file, CommandWithArg* command, char* label)
 
     strcat(label, ":");
     for(size_t i = 0; i < ass_file->labels.labels_num; i++)
-	{        
-		if(strcmp(label, ass_file->labels.label_name[i]) == 0)
-		{
-			command->arg = (double)ass_file->labels.label_address[i];
-			return 1;
-		}
-	}
+    {        
+        if(strcmp(label, ass_file->labels.label_name[i]) == 0)
+        {
+            command->arg = (double)ass_file->labels.label_address[i];
+            return 1;
+        }
+    }
     return 0;
 }
 
@@ -42,13 +42,13 @@ int IsReg(CommandWithArg* command, char* reg)
     assert(reg != NULL);
 
     #define REG_DEF(reg_name, reg_cpu_code)     \
-	    if(strcmp(#reg_name, reg) == 0)          \
+        if(strcmp(#reg_name, reg) == 0)          \
         {                                         \
             command->arg = reg_cpu_code;           \
             return 1;                               \
         }                                    
-	#include "../regs.h"
-	#undef REG_DEF
+    #include "../regs.h"
+    #undef REG_DEF
     return 0;
 }
 
@@ -59,15 +59,15 @@ int IsCommand(CommandWithArg* command, char* cmd_name, int* arg_num)
     assert(arg_num != NULL);
 
     #define DEF_CMD(name, cpu_code, args_num, ...)       \
-	    if(strcmp(cmd_name, #name) == 0)                  \
+        if(strcmp(cmd_name, #name) == 0)                  \
         {                                                  \
-		    command->cmd = (Cmds)cpu_code;                  \
+            command->cmd = (Cmds)cpu_code;                  \
             *arg_num = args_num;                             \
             return 1;                                         \
         }
             
     #include "../cmds.h"
-	#undef DEF_CMD
+    #undef DEF_CMD
     return 0;
 }
 
@@ -175,7 +175,7 @@ int ASMProcess(AsmFile* ass_file, const char* file_name)
 
     if(!file)
     {
-		SetErrorBit(&ass_file->errors, ASM_COMPILED_FILE_ERROR);
+        SetErrorBit(&ass_file->errors, ASM_COMPILED_FILE_ERROR);
     }
 
     ass_file->labels.label_address = (int*)calloc(ass_file->lines.lines_number, sizeof(int));
@@ -208,16 +208,16 @@ int ASMProcess(AsmFile* ass_file, const char* file_name)
         }
 
         ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, line_num)
-	}
+    }
     free(trash);
 
-	for(int line_num = 1; line_num < ass_file->lines.lines_number + 1; line_num++)
-	{
+    for(int line_num = 1; line_num < ass_file->lines.lines_number + 1; line_num++)
+    {
         char* cur_str = ass_file->lines.lines_ptr[line_num - 1];
-		ReadLine(ass_file, cur_str, command);
+        ReadLine(ass_file, cur_str, command);
         ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, line_num)
         CommandWithArg* command = (CommandWithArg*)calloc(1, sizeof(CommandWithArg));
-	}
+    }
 
     fwrite(ass_file->cmds, sizeof(CommandWithArg), ass_file->cmd_num, file);
     fclose(file);
@@ -261,7 +261,7 @@ int ASMCtor(AsmFile* ass_file, const char* file_name)
 {
     if(!ass_file)
     {
-		return ASM_PTR_NULL;
+        return ASM_PTR_NULL;
     }
 
     ass_file->errors = NO_ERRORS;
@@ -271,13 +271,13 @@ int ASMCtor(AsmFile* ass_file, const char* file_name)
     FILE* file = fopen(file_name, "rb");
     if(!file)
     {
-		SetErrorBit(&ass_file->errors, ASM_COMPILED_FILE_ERROR);
+        SetErrorBit(&ass_file->errors, ASM_COMPILED_FILE_ERROR);
     }
 
     ass_file->log =  fopen("asm/asmlog.txt", "wb");
     if(!ass_file->log)
     {
-		SetErrorBit(&ass_file->errors, ASM_LOGER_ERROR);
+        SetErrorBit(&ass_file->errors, ASM_LOGER_ERROR);
     }
 
     if(!ReadFile(ass_file, file))
@@ -286,52 +286,52 @@ int ASMCtor(AsmFile* ass_file, const char* file_name)
     }
 
     fclose(file);
-	ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, 0)
+    ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, 0)
     return ass_file->errors;
 }
 
 void ASMDump(AsmFile* ass_file, size_t line_num, FILE* logger)
 {
-	assert(ass_file != NULL);
-	assert(logger != NULL);
+    assert(ass_file != NULL);
+    assert(logger != NULL);
 
-	static size_t num_of_call = 1;
+    static size_t num_of_call = 1;
 
 	fprintf(logger, 
-		"=======================================\n"
-		"ASM DUMP CALL #%zu\n"
-		"Line: ", num_of_call);
-	if(line_num == 0)
+        "=======================================\n"
+        "ASM DUMP CALL #%zu\n"
+        "Line: ", num_of_call);
+    if(line_num == 0)
     {
-		fprintf(logger, "Before processing file\n");
+        fprintf(logger, "Before processing file\n");
     }
-	else
+    else
     {
-		fprintf(logger, "%zu\n", line_num);
+        fprintf(logger, "%zu\n", line_num);
     }
 
 	if(ass_file->errors)
-	{
-		fprintf(logger, "-------------ERRORS------------\n");
-		if(ass_file->errors & ASM_PTR_NULL)
-		{
-			fprintf(logger, "ASM POINTER IS NULL\n");
-			return;
-		}
-		if(ass_file->errors & ASM_BAD_TEXT_INFO)             fprintf(logger, "SOME TROUBLES WITH TEXT INFO STRUCT\n");
-		if(ass_file->errors & ASM_LOGER_ERROR)               fprintf(logger, "ASM LOGGER ERROR\n");
-	    if(ass_file->errors & ASM_COMPILED_FILE_ERROR)       fprintf(logger, "COMPILED FILE ERROR\n");
-	    if(ass_file->errors & ASM_INVALID_REG_OR_LABEL_NAME) fprintf(logger, "Invalid reg or label name!\n");
-	    if(ass_file->errors & ASM_TOO_MANY_ARGS)             fprintf(logger, "Too MANY args in command!\n");
-	    if(ass_file->errors & ASM_TOO_FEW_ARGS)              fprintf(logger, "Too FEW args in command!\n");	   
-	    if(ass_file->errors & ASM_POP_WITH_NUM)              fprintf(logger, "You just did Pop with num, are you crazy????\n");
+    {
+        fprintf(logger, "-------------ERRORS------------\n");
+        if(ass_file->errors & ASM_PTR_NULL)
+        {
+            fprintf(logger, "ASM POINTER IS NULL\n");
+            return;
+        }
+        if(ass_file->errors & ASM_BAD_TEXT_INFO)             fprintf(logger, "SOME TROUBLES WITH TEXT INFO STRUCT\n");
+        if(ass_file->errors & ASM_LOGER_ERROR)               fprintf(logger, "ASM LOGGER ERROR\n");
+        if(ass_file->errors & ASM_COMPILED_FILE_ERROR)       fprintf(logger, "COMPILED FILE ERROR\n");
+        if(ass_file->errors & ASM_INVALID_REG_OR_LABEL_NAME) fprintf(logger, "Invalid reg or label name!\n");
+        if(ass_file->errors & ASM_TOO_MANY_ARGS)             fprintf(logger, "Too MANY args in command!\n");
+        if(ass_file->errors & ASM_TOO_FEW_ARGS)              fprintf(logger, "Too FEW args in command!\n");	   
+        if(ass_file->errors & ASM_POP_WITH_NUM)              fprintf(logger, "You just did Pop with num, are you crazy????\n");
 
-		fprintf(logger, "----------END_OF_ERRORS--------\n");
-	}
-	else
-		fprintf(logger, "------------NO_ERRORS----------\n");
-	fprintf(logger, "=======================================\n\n");
-	num_of_call++;
+        fprintf(logger, "----------END_OF_ERRORS--------\n");
+    }
+    else
+        fprintf(logger, "------------NO_ERRORS----------\n");
+    fprintf(logger, "=======================================\n\n");
+    num_of_call++;
 }
 
 
@@ -339,11 +339,11 @@ int ASMDtor(AsmFile* ass_file)
 {
     if(!ass_file)
     {
-		return ASM_PTR_NULL;
+        return ASM_PTR_NULL;
     }
 	if(!ass_file->lines.lines_ptr || !ass_file->cmds)
     {
-		SetErrorBit(&ass_file->errors, ASM_BAD_TEXT_INFO);
+        SetErrorBit(&ass_file->errors, ASM_BAD_TEXT_INFO);
         return ASM_BAD_TEXT_INFO;
     }
     else

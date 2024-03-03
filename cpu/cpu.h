@@ -6,24 +6,23 @@
 typedef enum CPUErrors
 {
     NO_ERRORS                     = 0,
-	CPU_PTR_NULL                  = 1 << 0,
-	CPU_BAD_STACK                 = 1 << 1,
-	CPU_WRONG_INPUT               = 1 << 2,
-	CPU_LOGER_ERROR               = 1 << 3,
-	CPU_CMDS_PTR_NULL             = 1 << 4,
-	CPU_COMPILED_FILE_ERROR       = 1 << 5,
+    CPU_PTR_NULL                  = 1 << 0,
+    CPU_BAD_STACK                 = 1 << 1,
+    CPU_WRONG_INPUT               = 1 << 2,
+    CPU_LOGER_ERROR               = 1 << 3,
+    CPU_CMDS_PTR_NULL             = 1 << 4,
+    CPU_COMPILED_FILE_ERROR       = 1 << 5,
     CPU_TOO_MANY_ARGS             = 1 << 6,
-	CPU_INVALID_REG_OR_LABEL_NAME = 1 << 7,
-	CPU_POP_WITH_NUM              = 1 << 8
+    CPU_INVALID_REG_OR_LABEL_NAME = 1 << 7,
+    CPU_POP_WITH_NUM              = 1 << 8
 }CPUErrors;
 
 typedef struct Cpu
 {
     #define REG_DEF(name, ...) Elem_t name;
 
-	#include "../regs.h"
-
-	#undef REG_DEF
+    #include "../regs.h"
+    #undef REG_DEF
 }Cpu;
 
 typedef struct CpuFile

@@ -10,32 +10,32 @@
 #include "stack/stack.h"
 
 #define CHECK_ERROR(obj, condition, error)  \
-	if(condition)						     \
-		SetErrorBit(&obj->errors, error);     \
-	else								       \
-		UnsetErrorBit(&obj->errors, error);
+    if(condition)                            \
+        SetErrorBit(&obj->errors, error);     \
+    else                                       \
+        UnsetErrorBit(&obj->errors, error);
 
 #define ERROR_PROCESSING(structure, StructDump, StructDtor, line_of_file) \
-	if (structure->errors)												   \
-	{																		\
-		StructDump(structure, line_of_file, stderr);				         \
-		StructDtor(structure);											      \
-		return structure->errors;											   \
-	}																			\
-	StructDump(structure, line_of_file, structure->log);								  
+    if (structure->errors)                                                 \
+    {                                                                       \
+        StructDump(structure, line_of_file, stderr);                         \
+        StructDtor(structure);                                                \
+        return structure->errors;                                              \
+    }                                                                           \
+    StructDump(structure, line_of_file, structure->log);                                  
 
 typedef enum ArgType
 {
     NOARG = 0,
     IMM   = 1 << 5, 
-	REG   = 1 << 6,
+    REG   = 1 << 6,
     LAB   = 1 << 7,
 }ArgType;
 
 typedef struct Labels
 {
-	char** label_name;
-	int*  label_address;
+    char** label_name;
+    int*  label_address;
     int labels_num;
 }Labels;
 
@@ -47,18 +47,18 @@ typedef struct Lines
 
 typedef enum Regs 
 {
-	#define REG_DEF(name, reg_code) name = reg_code,
+    #define REG_DEF(name, reg_code) name = reg_code,
 
-	#include "regs.h"
-	#undef REG_DEF
+    #include "regs.h"
+    #undef REG_DEF
 }Regs;
 
 typedef enum Cmds 
 {
-	#define DEF_CMD(name, cpu_code, ...) name = cpu_code,
+    #define DEF_CMD(name, cpu_code, ...) name = cpu_code,
 
-	#include "cmds.h"
-	#undef DEF_CMD
+    #include "cmds.h"
+    #undef DEF_CMD
 }Cmds;
 
 typedef struct CommandWithArg

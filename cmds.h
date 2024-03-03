@@ -84,105 +84,118 @@ DEF_CMD(IN, 10, 0,
         Elem_t num = 0;
         printf("IN: ");
         if( scanf("%lf", &num) != 1)
+        {
             SetErrorBit(&cpu_file->errors, CPU_WRONG_INPUT);
-
+        }
         PUSH_STK(num);
     }
 )
 
 DEF_CMD(JMP, 12, 1,
-	cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
 )
 
 DEF_CMD(JA, 13, 1,
     {
         Elem_t num1 = {};
-	    Elem_t num2 = {};
-	    POP_STK(num1);
-	    POP_STK(num2);
-	    if(num1 > num2)
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};
+        POP_STK(num1);
+        POP_STK(num2);
+        if(num1 > num2)
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(JB, 14, 1, 
     {
         Elem_t num1 = {};       
-	    Elem_t num2 = {};	    
-	    POP_STK(num1);			    
-	    POP_STK(num2);			    
-	    if(num1 < num2)      
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};        
+        POP_STK(num1);                
+        POP_STK(num2);                
+        if(num1 < num2)      
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(JAE, 15, 1,
     {
         Elem_t num1 = {};       
-	    Elem_t num2 = {};	    
-	    POP_STK(num1);			    
-	    POP_STK(num2);			    
-	    if(num1 >= num2)      
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};        
+        POP_STK(num1);                
+        POP_STK(num2);                
+        if(num1 >= num2)      
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(JBE, 16, 1,
     {
         Elem_t num1 = {};       
-	    Elem_t num2 = {};	    
-	    POP_STK(num1);			    
-	    POP_STK(num2);			    
-	    if(num1 <= num2)      
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};        
+        POP_STK(num1);                
+        POP_STK(num2);                
+        if(num1 <= num2)      
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(JE, 17, 1,
     {
         Elem_t num1 = {};       
-	    Elem_t num2 = {};	    
-	    POP_STK(num1);			    
-	    POP_STK(num2);			    
-	    if(num1 == num2)
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};        
+        POP_STK(num1);                
+        POP_STK(num2);                
+        if(num1 == num2)
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(JNE, 18, 1,
     {
         Elem_t num1 = {};       
-	    Elem_t num2 = {};	    
-	    POP_STK(num1);			    
-	    POP_STK(num2);			    
-	    if(num1 != num2)      
-		    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        Elem_t num2 = {};        
+        POP_STK(num1);                
+        POP_STK(num2);                
+        if(num1 != num2)      
+        {
+            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        }
     }
 )
 
 DEF_CMD(CALL, 19, 1,
     {
-	    PUSH_STK(cpu_file->current_line_num);
-	    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        PUSH_STK(cpu_file->current_line_num);
+        cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
     }
 )
 
 DEF_CMD(RET, 20, 0,
-	if (cpu_file->stack.size >= 1)
-	{
-		Elem_t ret_address = 0;
-		POP_STK(ret_address);
-		cpu_file->current_line_num = (int)ret_address;
-	}
+    if (cpu_file->stack.size >= 1)
+    {
+        Elem_t ret_address = 0;
+        POP_STK(ret_address);
+        cpu_file->current_line_num = (int)ret_address;
+    }
 )
 
 DEF_CMD(OUTC, 21, 0,
-	if (cpu_file->stack.size >= 1)
-	{
+    if (cpu_file->stack.size >= 1)
+    {
         Elem_t num_to_output = 0;
-		POP_STK(num_to_output);
-		printf("%c", (char)num_to_output);
-	}
+        POP_STK(num_to_output);
+        printf("%c", (char)num_to_output);
+    }
 )
 
 #undef DEF_CMD

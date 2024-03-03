@@ -18,21 +18,21 @@ void SetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type)
 {
     assert(command_cpu_code != NULL);
 
-	*(char*)command_cpu_code |= (char)arg_type;
+    *(char*)command_cpu_code |= (char)arg_type;
 }
 
 void UnsetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type)
 {
-	assert(command_cpu_code != NULL);
+    assert(command_cpu_code != NULL);
 
-	*(char*)command_cpu_code &= ~(char)arg_type;
+    *(char*)command_cpu_code &= ~(char)arg_type;
 }
 
 void SetCommandTypeBitCode(ArgType* old_arg_type, ArgType new_arg_type)
 {
-	assert(old_arg_type != NULL);
+    assert(old_arg_type != NULL);
 
-	*(char*)old_arg_type |= (char)new_arg_type;
+    *(char*)old_arg_type |= (char)new_arg_type;
 }
 
 int GetFileSize(FILE* text, int start)
