@@ -3,6 +3,7 @@
 void SetErrorBit(int* error, int errorbit)
 {
     assert(error != NULL);
+    
     *error |= errorbit;
 }
 
@@ -13,21 +14,21 @@ void UnsetErrorBit(int* error, int errorbit)
     *error &= ~(errorbit);
 }
 
-void SetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type)
+void SetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type)
 {
     assert(command_cpu_code != NULL);
 
 	*(char*)command_cpu_code |= (char)arg_type;
 }
 
-void UnsetCommandBitCode(CPUCommand* command_cpu_code, argType arg_type)
+void UnsetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type)
 {
 	assert(command_cpu_code != NULL);
 
 	*(char*)command_cpu_code &= ~(char)arg_type;
 }
 
-void SetCommandTypeBitCode(argType* old_arg_type, argType new_arg_type)
+void SetCommandTypeBitCode(ArgType* old_arg_type, ArgType new_arg_type)
 {
 	assert(old_arg_type != NULL);
 
@@ -36,23 +37,25 @@ void SetCommandTypeBitCode(argType* old_arg_type, argType new_arg_type)
 
 int GetFileSize(FILE* text, int start)
 {
-    assert( text != NULL );
+    assert(text != NULL);
 
-    fseek( text, 0, SEEK_END );
-    int fileSize = ftell( text ) - start;
-    fseek( text, 0, start );
+    fseek(text, 0, SEEK_END);
+    int fileSize = ftell(text) - start;
+    fseek(text, 0, start);
     return fileSize;
 }
 
-int GetLineNumber( char* code, int codeSize )
+int GetLineNumber(char* code, int codeSize)
 {
     assert( code != NULL );
 
     int lineNumber = 1;
-    for( size_t i = 0; i < codeSize; i++ )
+    for(size_t i = 0; i < codeSize; i++)
     {
-        if ( code[i] == '\n' )
+        if (code[i] == '\n')
+        {
             lineNumber++;
+        }
     }
     return lineNumber;
 }

@@ -7,9 +7,9 @@ putCoef:
 	IN
 	IN
 	IN
-	POP rc
-	POP rb
-	POP ra
+	POP rcx
+	POP rbx
+	POP rax
 	RET
 
 printNoRoots:
@@ -29,123 +29,123 @@ printInfRoots:
 	RET
 
 printOneRoot:
-	PUSH rxf
+	PUSH rsp
 	OUT
 	RET
 
 printTwoRoots:
-	PUSH rxf
-	PUSH rxs
+	PUSH rsp
+	PUSH rsi
 	OUT
 	OUT
 	RET
 
 outputSolve:
-	PUSH rr
+	PUSH rdi
 	PUSH 0
 	JE printNoRoots
-	PUSH rr
+	PUSH rdi
 	PUSH -1
 	JE printInfRoots
-	PUSH rr
+	PUSH rdi
 	PUSH 1
 	JE printOneRoot
-	PUSH rr
+	PUSH rdi
 	PUSH 2
 	JE printTwoRoots
 	RET
 
 discr:
-	PUSH rb
-	PUSH rb
+	PUSH rbx
+	PUSH rbx
 	MUL
     PUSH 4
-	PUSH ra
-	PUSH rc
+	PUSH rax
+	PUSH rcx
 	MUL
 	MUL
 	SUB
-	POP rd
+	POP rdx
 	RET
 
 cIzZero:
 	PUSH -1
-	POP rr
+	POP rdi
 	RET
 
 noRoots:
 	PUSH 0
-	POP rr
+	POP rdi
 	RET
 
 bIsZero:
-	PUSH rc
+	PUSH rcx
 	PUSH 0
 	JE cIzZero
 	JMP noRoots
 
 aIsZero:
-	PUSH rb
+	PUSH rbx
 	PUSH 0
 	JE bIsZero 
-	PUSH rb
+	PUSH rbx
     PUSH 0
-	PUSH rc
+	PUSH rcx
 	SUB
 	DIV
-	POP rxf
+	POP rsp
 	PUSH 1
-	POP rr
+	POP rdi
 	RET
 
 discrIsZero:
 	PUSH 0
-    PUSH rb
+    PUSH rbx
 	SUB
     PUSH 2
-	PUSH ra
+	PUSH rax
 	MUL
 	DIV
-	POP rxf
+	POP rsp
 	PUSH 1
-	POP rr
+	POP rdi
 	RET
 
 solve:
-	PUSH ra
+	PUSH rax
 	PUSH 0
 	JE aIsZero
 	CALL discr
-	PUSH rd
+	PUSH rdx
 	PUSH 0
 	JA noRoots
-	PUSH rd
+	PUSH rdx
 	PUSH 0
 	JE discrIsZero
 
-	PUSH rd
+	PUSH rdx
 	SQRT
     PUSH 0
-	PUSH rb
+	PUSH rbx
 	SUB
 	ADD
-    PUSH ra
+    PUSH rax
 	PUSH 2
 	MUL
 	DIV
-	POP rxf
+	POP rsp
 
     PUSH 0
-	PUSH rb
+	PUSH rbx
 	SUB
-    PUSH rd
+    PUSH rdx
     SQRT
 	SUB
-    PUSH ra
+    PUSH rax
 	PUSH 2
 	MUL
 	DIV
-	POP rxs
+	POP rsi
 	PUSH 2
-	POP rr
+	POP rdi
 	RET
