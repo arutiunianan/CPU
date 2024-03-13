@@ -155,7 +155,7 @@ int ReadLine(AsmFile* ass_file, char* cur_str, Instruction* command)
     return ass_file->errors < 0;
 }
 
-int ASMProcess(AsmFile* ass_file, const char* file_name)
+int ASMExecute(AsmFile* ass_file, const char* file_name)
 {
     assert(ass_file != NULL);
     assert(file_name != NULL);

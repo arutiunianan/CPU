@@ -29,7 +29,7 @@ typedef struct DisFile
 
 int DISDtor(DisFile* dis_file);
 void DISDump(DisFile* dis_file, size_t line_num, FILE* logger);
-int DISProcess(DisFile* dis_file, const char* file_name);
+int DISExecute(DisFile* dis_file, const char* file_name);
 int DISCtor(DisFile* dis_file, const char* file_name);
 
 #endif // #define DIS_H_

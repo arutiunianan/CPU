@@ -18,7 +18,7 @@ int main(int argc, const char* argv[])
         printf("Invalid number of args to program\n");
         return 1;
     }
-    CPUProcess(&cpu_log);
+    CPUExecute(&cpu_log);
     CPUDtor(&cpu_log);
     return 0;
 }

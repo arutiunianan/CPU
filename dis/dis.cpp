@@ -137,7 +137,22 @@ int DISCtor(DisFile* dis_file, const char* file_name)
     ERROR_PROCESSING(dis_file, DISDump, DISDtor, 0);
 }
 
-int DISProcess(DisFile* dis_file, const char* file_name)
+int DISDtor(DisFile* dis_file)
+{
+    if(!dis_file)
+    {
+        return DIS_PTR_NULL;
+    }
+
+    fclose(dis_file->log);
+
+    free(dis_file->cmds);
+    dis_file->cmd_num = 0xB0BA;
+    dis_file->current_line_num = 0xB1BA;
+}
+
+
+int DISExecute(DisFile* dis_file, const char* file_name)
 {
     assert(dis_file != NULL);
     assert(file_name != NULL);
@@ -236,16 +251,3 @@ void DISDump(DisFile* dis_file, size_t line_num, FILE* logger)
 
 }
 
-int DISDtor(DisFile* dis_file)
-{
-    if(!dis_file)
-    {
-        return DIS_PTR_NULL;
-    }
-
-    fclose(dis_file->log);
-
-    free(dis_file->cmds);
-    dis_file->cmd_num = 0xB0BA;
-    dis_file->current_line_num = 0xB1BA;
-}

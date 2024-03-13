@@ -166,7 +166,24 @@ int CPUCtor(CpuLog* cpu_log, const char* binary_file)
     return 0;
 }
 
-int CPUProcess(CpuLog* cpu_log)
+
+int CPUDtor(CpuLog* cpu_log)
+{
+    if(!cpu_log)
+    {
+        return CPU_PTR_NULL;
+    }
+
+    fclose(cpu_log->log);
+    
+
+    free(cpu_log->cmds);
+    cpu_log->cmd_num = 0xB0BA;
+    cpu_log->current_line_num = 0xB1BA;
+}
+
+
+int CPUExecute(CpuLog* cpu_log)
 {
     assert(cpu_log != NULL);
 
@@ -267,19 +284,4 @@ void CPUDump(CpuLog* cpu_log, size_t num_of_line, FILE* logger)
     fprintf(logger, "=======================================\n\n");
     
     num_of_call++;
-}
-
-int CPUDtor(CpuLog* cpu_log)
-{
-    if(!cpu_log)
-    {
-        return CPU_PTR_NULL;
-    }
-
-    fclose(cpu_log->log);
-    
-
-    free(cpu_log->cmds);
-    cpu_log->cmd_num = 0xB0BA;
-    cpu_log->current_line_num = 0xB1BA;
 }

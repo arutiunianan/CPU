@@ -41,9 +41,8 @@ typedef struct CpuLog
     int errors;
 }CpuLog;
 
-// int CPUExecute(CPU* cpu, Stack*, Instruction*, cmd_num)
 
-int CPUProcess(CpuLog* cpu_log);
+int CPUExecute(CpuLog* cpu_log);
 int CPUCtor(CpuLog* cpu_log, const char* file);
 int CPUDtor(CpuLog* cpu_log);
 void SetReg(CpuLog* cpu_log, Elem_t reg, Elem_t value);

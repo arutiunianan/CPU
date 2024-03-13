@@ -31,7 +31,7 @@ typedef struct AsmFile
 
 int ASMCtor(AsmFile* ass_file, const char* equation);
 int ASMDtor(AsmFile* ass_file);
-int ASMProcess(AsmFile* ass_file, const char* equation);
+int ASMExecute(AsmFile* ass_file, const char* equation);
 void ASMDump(AsmFile* ass_file, size_t line_num, FILE* logger);
 
 #endif // #define ASM_H_

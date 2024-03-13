@@ -7,12 +7,12 @@ int main(int argc, const char* argv[])
     if(argc == 1)
     {
         DISCtor(&dis_file, "ass.txt");
-        DISProcess(&dis_file, "dis/dis.txt");
+        DISExecute(&dis_file, "dis/dis.txt");
     }
     else if(argc == 3)
     {
         DISCtor(&dis_file, argv[1]);
-        DISProcess(&dis_file, argv[2]);
+        DISExecute(&dis_file, argv[2]);
     }
     else
     {
