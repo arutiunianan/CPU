@@ -3,11 +3,6 @@
 
 #include "../proc_lib/common.h"
 
-
-// C++ 20 / C++ 23
-// import ModuleName.SomeClass 
-// export
-
 typedef enum CPUErrors
 {
     NO_ERRORS                     = 0,

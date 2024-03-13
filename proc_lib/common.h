@@ -32,7 +32,6 @@ typedef enum ArgType
     LAB   = 1 << 7,
 }ArgType;
 
-
 void SetErrorBit(int* error, int errorbit);
 void UnsetErrorBit(int* error, int errorbit);
 Cmds ClearInstrArgType(Cmds command_cpu_code, ArgType arg_type);
