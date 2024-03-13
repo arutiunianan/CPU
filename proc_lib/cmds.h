@@ -1,6 +1,7 @@
-#define POP_STK(num) StackPop(&cpu_file->stack, &num)
-#define PUSH_STK(num) StackPush(&cpu_file->stack, num)
+#define POP_STK(num) StackPop(&stack, &num)
+#define PUSH_STK(num) StackPush(&stack, num)
 
+// ??
 DEF_CMD(HLT, 0, 0,
     {
         printf("\nend\n");
@@ -10,7 +11,7 @@ DEF_CMD(HLT, 0, 0,
 
 DEF_CMD(PUSH, 1, 1,
     {
-        PUSH_STK(GetProperArgument(cpu_file, arg_type, command));
+        PUSH_STK(GetValidArgument(cpu_log, &cpu, arg_type, &command));
     }
 )
 
@@ -18,7 +19,7 @@ DEF_CMD(POP, 2, 1,
     {
         Elem_t num = 0;
         POP_STK(num);
-        SetReg(cpu_file, command->arg, num);
+        SetReg(cpu_log, &cpu, command.arg, num);
     }
 )
  
@@ -85,14 +86,14 @@ DEF_CMD(IN, 10, 0,
         printf("IN: ");
         if( scanf("%lf", &num) != 1)
         {
-            SetErrorBit(&cpu_file->errors, CPU_WRONG_INPUT);
+            SetErrorBit(&cpu_log->errors, CPU_WRONG_INPUT);
         }
         PUSH_STK(num);
     }
 )
 
 DEF_CMD(JMP, 12, 1,
-    cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+    cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
 )
 
 DEF_CMD(JA, 13, 1,
@@ -103,7 +104,7 @@ DEF_CMD(JA, 13, 1,
         POP_STK(num2);
         if(num1 > num2)
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
@@ -116,7 +117,7 @@ DEF_CMD(JB, 14, 1,
         POP_STK(num2);                
         if(num1 < num2)      
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
@@ -129,7 +130,7 @@ DEF_CMD(JAE, 15, 1,
         POP_STK(num2);                
         if(num1 >= num2)      
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
@@ -142,7 +143,7 @@ DEF_CMD(JBE, 16, 1,
         POP_STK(num2);                
         if(num1 <= num2)      
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
@@ -155,7 +156,7 @@ DEF_CMD(JE, 17, 1,
         POP_STK(num2);                
         if(num1 == num2)
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
@@ -168,29 +169,29 @@ DEF_CMD(JNE, 18, 1,
         POP_STK(num2);                
         if(num1 != num2)      
         {
-            cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+            cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
         }
     }
 )
 
 DEF_CMD(CALL, 19, 1,
     {
-        PUSH_STK(cpu_file->current_line_num);
-        cpu_file->current_line_num = GetProperArgument(cpu_file, arg_type, command) - 1;
+        PUSH_STK(cpu_log->current_line_num);
+        cpu_log->current_line_num = GetValidArgument(cpu_log, &cpu, arg_type, &command) - 1;
     }
 )
 
 DEF_CMD(RET, 20, 0,
-    if (cpu_file->stack.size >= 1)
+    if (stack.size >= 1)
     {
         Elem_t ret_address = 0;
         POP_STK(ret_address);
-        cpu_file->current_line_num = (int)ret_address;
+        cpu_log->current_line_num = (int)ret_address;
     }
 )
 
 DEF_CMD(OUTC, 21, 0,
-    if (cpu_file->stack.size >= 1)
+    if (stack.size >= 1)
     {
         Elem_t num_to_output = 0;
         POP_STK(num_to_output);

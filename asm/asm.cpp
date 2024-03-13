@@ -1,29 +1,29 @@
 #include "asm.h"
 
-static void CreateBufferOfLines(AsmFile* ass_file, char* asm_code, int asm_code_size)
+static const int NUM_OF_LABLES = 20; 
+static const int MAX_STRLEN = 1024;
+static const int MAX_CMDSIZE = 256;
+
+void AppendInstrArgType(Cmds* command_cpu_code, ArgType arg_type)
 {
-    assert(ass_file != NULL);
-    assert(asm_code != NULL);
+    assert(command_cpu_code != NULL);
 
-    int line = 1;
-    ass_file->lines.lines_ptr[0] = asm_code;
-    for(int i = 0; i < asm_code_size - 1; i++)
-    {
-        if(asm_code[i] == '\n')
-        {
-            ass_file->lines.lines_ptr[line++] = &(asm_code[i+1]);
-
-            asm_code[i] = '\0';
-        }
-    }
+    *(char*)command_cpu_code |= (char)arg_type;
 }
 
-int IsLabel(AsmFile* ass_file, CommandWithArg* command, char* label)
+void SetCommandTypeBitCode(ArgType* old_arg_type, ArgType new_arg_type)
+{
+    assert(old_arg_type != NULL);
+
+    *(char*)old_arg_type |= (char)new_arg_type;
+}
+
+int IsLabel(AsmFile* ass_file, Instruction* command, char* label)
 {
     assert(ass_file != NULL);
     assert(command != NULL);
     assert(label != NULL);
-
+    
     strcat(label, ":");
     for(size_t i = 0; i < ass_file->labels.labels_num; i++)
     {        
@@ -36,7 +36,7 @@ int IsLabel(AsmFile* ass_file, CommandWithArg* command, char* label)
     return 0;
 }
 
-int IsReg(CommandWithArg* command, char* reg)
+int IsReg(Instruction* command, char* reg)
 {
     assert(command != NULL);
     assert(reg != NULL);
@@ -47,12 +47,12 @@ int IsReg(CommandWithArg* command, char* reg)
             command->arg = reg_cpu_code;           \
             return 1;                               \
         }                                    
-    #include "../regs.h"
+    #include "../proc_lib/regs.h"
     #undef REG_DEF
     return 0;
 }
 
-int IsCommand(CommandWithArg* command, char* cmd_name, int* arg_num)
+int IsCommand(Instruction* command, char* cmd_name, int* arg_num)
 {
     assert(command != NULL);
     assert(cmd_name != NULL);
@@ -66,58 +66,59 @@ int IsCommand(CommandWithArg* command, char* cmd_name, int* arg_num)
             return 1;                                         \
         }
             
-    #include "../cmds.h"
+    #include "../proc_lib/cmds.h"
     #undef DEF_CMD
     return 0;
 }
 
-void def(AsmFile* ass_file, CommandWithArg* command, char* cmd_name, ArgType arg_type)
+void SetInstruction(AsmFile* ass_file, Instruction* command, char* cmd_name, ArgType arg_type)
 {
     assert(ass_file != NULL);
     assert(command != NULL);
     assert(cmd_name != NULL);
 
     int arg_num = 0;
-    if(IsCommand(command, cmd_name, &arg_num))
+    if(!IsCommand(command, cmd_name, &arg_num))
     {
-        SetCommandBitCode(&command->cmd, arg_type); 
-        ass_file->cmds[ass_file->cmd_num].cmd = command->cmd;
-    
-        if(!strcmp(cmd_name, "POP") && arg_type == IMM)
-        {
-            SetErrorBit(&ass_file->errors, ASM_POP_WITH_NUM);
-        }
-
-        if(arg_type != NOARG)
-        {
-            if(arg_num == 1)
-            {
-                ass_file->cmds[ass_file->cmd_num].arg = command->arg;
-            }
-            else
-            {
-                SetErrorBit(&ass_file->errors, ASM_TOO_FEW_ARGS);
-            }
-        }
-        else if(arg_num != 0)
-        {
-            SetErrorBit(&ass_file->errors, ASM_TOO_MANY_ARGS);
-        }
-
-        ass_file->cmd_num++;
-    }
-    else
         SetErrorBit(&ass_file->errors, INVALID_ASM_COMMAND);
+        return;
+    }
+
+    AppendInstrArgType(&command->cmd, arg_type); 
+    ass_file->cmds[ass_file->cmd_num].cmd = command->cmd;
+    
+    if(!strcmp(cmd_name, "POP") && arg_type == IMM)
+    {
+        SetErrorBit(&ass_file->errors, ASM_POP_WITH_NUM);
+    }
+
+    if(arg_type != NOARG)
+    {
+        if(arg_num == 1)
+        {
+            ass_file->cmds[ass_file->cmd_num].arg = command->arg;
+        }
+        else
+        {
+            SetErrorBit(&ass_file->errors, ASM_TOO_FEW_ARGS);
+        }
+    }
+    else if(arg_num != 0)
+    {
+        SetErrorBit(&ass_file->errors, ASM_TOO_MANY_ARGS);
+    }
+
+    ass_file->cmd_num++;
 }
 
-int ReadLine(AsmFile* ass_file, char* cur_str, CommandWithArg* command)
+int ReadLine(AsmFile* ass_file, char* cur_str, Instruction* command)
 {
     assert(ass_file != NULL);
     assert(cur_str != NULL);
     assert(command != NULL);
-    
-    char* cmd_name = (char*)calloc(strlen(cur_str), sizeof(char));
-    char* str = (char*)calloc(strlen(cur_str), sizeof(char));
+
+    char cmd_name[MAX_STRLEN] = {};
+    char str[MAX_STRLEN] = {};
 
     if(ass_file->errors > 0)
     {
@@ -126,17 +127,17 @@ int ReadLine(AsmFile* ass_file, char* cur_str, CommandWithArg* command)
 
     if(sscanf(cur_str, "%s %lf", cmd_name, &command->arg) == 2)
     {
-        def(ass_file, command, cmd_name, IMM);
+        SetInstruction(ass_file, command, cmd_name, IMM);
     }
     else if(sscanf(cur_str, "%s %s", cmd_name, str) == 2)
     {
         if(IsReg(command,str))
         {
-            def(ass_file, command, cmd_name, REG);
+            SetInstruction(ass_file, command, cmd_name, REG);
         }
         else if(IsLabel(ass_file, command, str))
         {
-            def(ass_file, command, cmd_name, LAB);
+            SetInstruction(ass_file, command, cmd_name, LAB);
         }
         else
         {
@@ -147,18 +148,11 @@ int ReadLine(AsmFile* ass_file, char* cur_str, CommandWithArg* command)
     {
         if(cmd_name[strlen(cmd_name) - 1] != ':')
         {
-            def(ass_file, command, cmd_name, NOARG);
+            SetInstruction(ass_file, command, cmd_name, NOARG);
         }
     }
             
-    if(ass_file->errors > 0)
-    {
-		return 0;
-    }
-    else
-    {
-        return 1;
-    }
+    return ass_file->errors < 0;
 }
 
 int ASMProcess(AsmFile* ass_file, const char* file_name)
@@ -168,8 +162,7 @@ int ASMProcess(AsmFile* ass_file, const char* file_name)
 
     ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, 0)
 
-    CommandWithArg* command = (CommandWithArg*)calloc(1, sizeof(CommandWithArg));
-    assert(command != NULL);
+    Instruction command = {};
 
     FILE *file = fopen(file_name, "w");
 
@@ -178,19 +171,18 @@ int ASMProcess(AsmFile* ass_file, const char* file_name)
         SetErrorBit(&ass_file->errors, ASM_COMPILED_FILE_ERROR);
     }
 
-    ass_file->labels.label_address = (int*)calloc(ass_file->lines.lines_number, sizeof(int));
-    ass_file->labels.label_name = (char**)calloc(ass_file->lines.lines_number, sizeof(char*));
+    ass_file->labels.label_address = (int*)calloc(NUM_OF_LABLES, sizeof(int));
+    ass_file->labels.label_name = (char**)calloc(NUM_OF_LABLES, sizeof(char*));
     
     int blank_lines_counter = 0;
-    char* trash; 
 
     for(int line_num = 1; line_num < ass_file->lines.lines_number + 1; line_num++)
 	{
         char* cur_str = ass_file->lines.lines_ptr[line_num - 1];
         int cmd_size = strlen(cur_str);
-		char* cmd_name = (char*)calloc(cmd_size, sizeof(char));
-        trash = (char*)calloc(cmd_size, sizeof(char));
-                        
+		char cmd_name[MAX_CMDSIZE] = {};
+        char trash[MAX_CMDSIZE] = {};
+
         if(sscanf(cur_str, "%s %s", cmd_name, trash) == 1)
         { 
             if(cmd_name[cmd_size - 1] == ':')
@@ -209,17 +201,16 @@ int ASMProcess(AsmFile* ass_file, const char* file_name)
 
         ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, line_num)
     }
-    free(trash);
 
-    for(int line_num = 1; line_num < ass_file->lines.lines_number + 1; line_num++)
+    for(int line_num = 1; line_num <= ass_file->lines.lines_number; line_num++)
     {
         char* cur_str = ass_file->lines.lines_ptr[line_num - 1];
-        ReadLine(ass_file, cur_str, command);
+        ReadLine(ass_file, cur_str, &command);
         ERROR_PROCESSING(ass_file, ASMDump, ASMDtor, line_num)
-        CommandWithArg* command = (CommandWithArg*)calloc(1, sizeof(CommandWithArg));
+        Instruction command = {};
     }
 
-    fwrite(ass_file->cmds, sizeof(CommandWithArg), ass_file->cmd_num, file);
+    fwrite(ass_file->cmds, sizeof(Instruction), ass_file->cmd_num, file);
     fclose(file);
 }
 
@@ -238,17 +229,13 @@ int ReadFile(AsmFile* ass_file, FILE* file)
     fread(asm_code, sizeof(char), asm_code_size, file);
     asm_code[asm_code_size] = '\0';
 
-    ass_file->lines.lines_number = GetLineNumber(asm_code, asm_code_size);
-    ass_file->lines.lines_ptr = (char**)calloc(ass_file->lines.lines_number, sizeof(char*));
-    if(!ass_file->lines.lines_ptr)
+    if(LinesCtor(&ass_file->lines, asm_code, asm_code_size))
     {
         return 0;
     }
 
-    CreateBufferOfLines(ass_file, asm_code, asm_code_size);
-
     ass_file->cmd_num = 0;
-    ass_file->cmds = (CommandWithArg*)calloc(ass_file->lines.lines_number, sizeof(CommandWithArg));
+    ass_file->cmds = (Instruction*)calloc(ass_file->lines.lines_number, sizeof(Instruction));
     if(!ass_file->cmds)
     {
         return 0;
@@ -290,6 +277,29 @@ int ASMCtor(AsmFile* ass_file, const char* file_name)
     return ass_file->errors;
 }
 
+int ASMDtor(AsmFile* ass_file)
+{
+    if(!ass_file)
+    {
+        return ASM_PTR_NULL;
+    }
+	if(!ass_file->lines.lines_ptr || !ass_file->cmds)
+    {
+        SetErrorBit(&ass_file->errors, ASM_BAD_TEXT_INFO);
+        return ASM_BAD_TEXT_INFO;
+    }
+    else
+    {
+        free(ass_file->lines.lines_ptr);
+        free(ass_file->cmds);
+        free(ass_file->labels.label_address);
+        free(ass_file->labels.label_name);
+        ass_file->cmd_num = 0xB1BA;
+        fclose(ass_file->log);
+    }
+    return NO_ERRORS;
+}
+
 void ASMDump(AsmFile* ass_file, size_t line_num, FILE* logger)
 {
     assert(ass_file != NULL);
@@ -329,55 +339,9 @@ void ASMDump(AsmFile* ass_file, size_t line_num, FILE* logger)
         fprintf(logger, "----------END_OF_ERRORS--------\n");
     }
     else
+    {
         fprintf(logger, "------------NO_ERRORS----------\n");
+    }
     fprintf(logger, "=======================================\n\n");
     num_of_call++;
-}
-
-
-int ASMDtor(AsmFile* ass_file)
-{
-    if(!ass_file)
-    {
-        return ASM_PTR_NULL;
-    }
-	if(!ass_file->lines.lines_ptr || !ass_file->cmds)
-    {
-        SetErrorBit(&ass_file->errors, ASM_BAD_TEXT_INFO);
-        return ASM_BAD_TEXT_INFO;
-    }
-    else
-    {
-        free(ass_file->lines.lines_ptr);
-        free(ass_file->cmds);
-        free(ass_file->labels.label_address);
-        free(ass_file->labels.label_name);
-        ass_file->cmd_num = 0xB1BA;
-        fclose(ass_file->log);
-    }
-    return NO_ERRORS;
-}
-
-int main(int argc, const char* argv[])
-{
-    AsmFile ass_file = {};
-
-    if(argc == 1)
-    {
-        ASMCtor(&ass_file, "quadratic_equation.txt");
-        ASMProcess(&ass_file, "ass.txt");
-
-    }
-    else if(argc == 3)
-    {
-        ASMCtor(&ass_file, argv[1]);
-        ASMProcess(&ass_file, argv[2]);
-    }
-    else
-    {
-        printf("Invalid number of args to program");
-        return 1;
-    }
-    ASMDtor(&ass_file);
-    return 0;
 }

@@ -1,7 +1,7 @@
 #ifndef ASM_H_
 #define ASM_H_
 
-#include "../commands.h"
+#include "../proc_lib/common.h"
 
 typedef enum ASMErrors
 {
@@ -22,7 +22,7 @@ typedef struct AsmFile
     Labels labels;
     Lines lines;
 
-    CommandWithArg* cmds;
+    Instruction* cmds;
     int cmd_num;
 
     FILE* log;
@@ -33,6 +33,5 @@ int ASMCtor(AsmFile* ass_file, const char* equation);
 int ASMDtor(AsmFile* ass_file);
 int ASMProcess(AsmFile* ass_file, const char* equation);
 void ASMDump(AsmFile* ass_file, size_t line_num, FILE* logger);
-
 
 #endif // #define ASM_H_

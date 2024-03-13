@@ -1,13 +1,13 @@
 #ifndef COM_H_
 #define COM_H_
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <math.h> 
-#include <assert.h>
 #include <string.h>
-#include "stack/stack.h"
+#include "isa.h"
+#include "io.h"
+#include "label.h"
 
 #define CHECK_ERROR(obj, condition, error)  \
     if(condition)                            \
@@ -32,47 +32,9 @@ typedef enum ArgType
     LAB   = 1 << 7,
 }ArgType;
 
-typedef struct Labels
-{
-    char** label_name;
-    int*  label_address;
-    int labels_num;
-}Labels;
-
-typedef struct Lines
-{
-    char** lines_ptr;
-    int lines_number;
-}Lines;
-
-typedef enum Regs 
-{
-    #define REG_DEF(name, reg_code) name = reg_code,
-
-    #include "regs.h"
-    #undef REG_DEF
-}Regs;
-
-typedef enum Cmds 
-{
-    #define DEF_CMD(name, cpu_code, ...) name = cpu_code,
-
-    #include "cmds.h"
-    #undef DEF_CMD
-}Cmds;
-
-typedef struct CommandWithArg
-{
-    Cmds cmd;
-    Elem_t arg;
-}CommandWithArg;
 
 void SetErrorBit(int* error, int errorbit);
 void UnsetErrorBit(int* error, int errorbit);
-void SetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type);
-void UnsetCommandBitCode(Cmds* command_cpu_code, ArgType arg_type);
-void SetCommandTypeBitCode(ArgType* old_arg_type, ArgType new_arg_type);
-int GetFileSize(FILE *text, int start);
-int GetLineNumber( char* code, int codeSize );
+Cmds ClearInstrArgType(Cmds command_cpu_code, ArgType arg_type);
 
 #endif // #define COM_H_

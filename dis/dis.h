@@ -1,7 +1,7 @@
 #ifndef DIS_H_
 #define DIS_H_
 
-#include "../commands.h"
+#include "../proc_lib/common.h"
 
 typedef enum DISErrors
 {
@@ -20,7 +20,7 @@ typedef enum DISErrors
 typedef struct DisFile
 {
     int cmd_num;
-    CommandWithArg* cmds;
+    Instruction* cmds;
     int current_line_num;
     
     FILE* log;

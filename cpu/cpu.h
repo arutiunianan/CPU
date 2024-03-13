@@ -1,7 +1,12 @@
 #ifndef CPU_H_
 #define CPU_H_
 
-#include "../commands.h"
+#include "../proc_lib/common.h"
+
+
+// C++ 20 / C++ 23
+// import ModuleName.SomeClass 
+// export
 
 typedef enum CPUErrors
 {
@@ -21,29 +26,27 @@ typedef struct Cpu
 {
     #define REG_DEF(name, ...) Elem_t name;
 
-    #include "../regs.h"
+    #include "../proc_lib/regs.h"
     #undef REG_DEF
+
 }Cpu;
 
-typedef struct CpuFile
+typedef struct CpuLog
 {
-    Stack stack;
-
     int current_line_num;
-    CommandWithArg* cmds;
+    Instruction* cmds;
     int cmd_num;
-    Cpu cpu;
 
     FILE* log;
     int errors;
-}CpuFile;
+}CpuLog;
 
+// int CPUExecute(CPU* cpu, Stack*, Instruction*, cmd_num)
 
-int CPUProcess(CpuFile* cpu_file);
-int CPUCtor(CpuFile* cpu_file, const char* file);
-int CPUDtor(CpuFile* cpu_file);
-int GetFileSize(FILE *text, int startOfCode);
-void SetReg(CpuFile* cpu_file, Elem_t reg, Elem_t value);
-void CPUDump(CpuFile* cpu_file, size_t num_of_line, FILE* logger);
+int CPUProcess(CpuLog* cpu_log);
+int CPUCtor(CpuLog* cpu_log, const char* file);
+int CPUDtor(CpuLog* cpu_log);
+void SetReg(CpuLog* cpu_log, Elem_t reg, Elem_t value);
+void CPUDump(CpuLog* cpu_log, size_t num_of_line, FILE* logger);
 
 #endif // #define CPU_H_
